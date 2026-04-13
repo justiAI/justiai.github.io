@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustiAI</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+body { background: #f7f8fb; color: #1f2937; line-height: 1.7; }
+a { text-decoration: none; color: inherit; }
+
+/* ── Header ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(19, 77, 158, 0.97);
+  border-bottom: 0.5px solid #e5e7eb;
+  backdrop-filter: blur(12px);
+}
+.nav-wrap {
+  max-width: 1100px; margin: 0 auto; height: 80px;
+  padding: 0 5%; display: flex; justify-content: space-between; align-items: center;
+}
+.brand { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.01em; color: #ffffff; }
+.brand span { color: #f7bf25; }
+nav ul { list-style: none; display: flex; gap: 2rem; }
+nav a { 
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff; 
+  position: relative; 
+  padding-bottom: 4px; 
+  transition: color 0.3s ease; 
+}
+
+nav a:hover { 
+  color: #f7bf25; 
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px; 
+  background-color: #f7bf25; 
+  transition: width 0.3s ease-in-out; 
+}
+nav a:hover::after {
+  width: 100%;
+}
+
+.hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 6px; background: none; border: none;
+}
+.hamburger span { width: 20px; height: 2px; background: #ffffff; border-radius: 1px; display: block; transition: 0.3s; }
+.hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 5px); }
+.hamburger.active span:nth-child(2) { opacity: 0; }
+.hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -5px); }
+
+/* ── Sections ── */
+section { padding: 6rem 5%; }
+.container { max-width: 1100px; margin: 0 auto; }
+
+/* ── Hero ── */
+.hero {
+  padding: 5rem 5% 6rem;
+  background: #bddbf4;
+  border-bottom: 0.5px solid #e5e7eb;
+}
+.hero-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 460px; gap: 4rem; align-items: center;
+}
+.eyebrow {
+  font-size: 0.9rem; letter-spacing: 0.09em; text-transform: uppercase;
+  color: #0a39d5; font-weight: 700; margin-bottom: 1.2rem;
+}
+.hero h1 {
+  font-size: clamp(2rem, 4vw, 3rem); font-weight: 600;
+  line-height: 1.15; letter-spacing: -0.03em;
+  color: #111827; margin-bottom: 1.5rem;
+}
+.hero h1 em { font-style: normal; color: #1D9E75; }
+.hero p { font-size: 1rem; color: #6b7280; max-width: 480px; margin-bottom: 2.5rem; }
+.badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.badge {
+  font-size: 0.9rem; padding: 0.3rem 0.75rem; border-radius: 100px;
+  border: 0.5px solid #d1d5db; color: #0c214a; background: #f9fafb;
+}
+
+/* Hero card mock */
+.hero-visual { position: relative; }
+.hero-card {
+  background: #f9fafb; border: 0.5px solid #e5e7eb;
+  border-radius: 20px; padding: 2.5rem;
+}
+.hc-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; color: #454b56; margin-bottom: 1rem; }
+.hc-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 2rem; color: #111827; }
+.progress-row { display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem; }
+
+/* 放大步驟圈圈與文字 */
+.pr-item { display: flex; align-items: center; gap: 1rem; }
+.pr-step {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 600; flex-shrink: 0;
+}
+.pr-step.done { background: #E1F5EE; color: #0F6E56; }
+.pr-step.active { background: #1D9E75; color: #fff; }
+.pr-step.pending { background: #fff; border: 0.5px solid #d1d5db; color: #9ca3af; }
+
+.pr-text { font-size: 1.05rem; color: #6b7280; }
+.pr-text.active { color: #111827; font-weight: 600; }
+
+/* 放大底部提示條 */
+.hc-bar {
+  background: #fff; border: 0.5px solid hsl(220, 97%, 26%);
+  border-radius: 12px; padding: 1.2rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.hc-bar-icon {
+  width: 50px; height: 50px; border-radius: 10px;
+  background: #E1F5EE; display: flex; align-items: center;
+  justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.hc-bar-text { font-size: 0.95rem; }
+.hc-bar-text strong { display: block; font-weight: 600; color: #111827; }
+.hc-bar-text span { color: #0d192e; }
+.lang-row { display: flex; gap: 0.4rem; margin-top: 1rem; flex-wrap: wrap; }
+.lang-pill {
+  font-size: 0.85rem; padding: 0.15rem 0.8rem; border-radius: 100px;
+  background: #d8dcf1; border: 0.5px solid #12151b; color: #0e0f11;
+}
+
+/* ── Background section ── */
+.bg-section {
+  background: #f3f4f6;
+  border-top: 0.5px solid #e5e7eb;
+  border-bottom: 0.5px solid #e5e7eb;
+}
+.section-label {
+  font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: #2834e1; margin-bottom: 0.75rem; font-weight: 700;
+}
+.section-heading {
+  font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 600;
+  letter-spacing: -0.025em; margin-bottom: 1rem; color: #111827;
+}
+.section-sub { color: #6b7280; max-width: 620px; font-size: 0.95rem; }
+.section-sub.centered { margin: 0 auto; text-align: center; }
+.heading-centered { text-align: center; }
+
+/* ── Value section ── */
+.value-section { background: #fff; }
+.value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+.v-card {
+  background: #f9fafb; border: 0.5px solid #e5e7eb;
+  border-radius: 14px; padding: 2rem; transition: border-color 0.2s, background 0.2s;
+}
+.v-card:hover { border-color: #9ca3af; background: #fff; }
+.v-num { font-size: 2rem; font-weight: 600;color: #0c234d; letter-spacing: 0.06em; margin-bottom: 0.5rem; font-family: "Courier New", monospace; }
+.v-accent { width: 80px; height: 2px; background: #f1962d; margin-bottom: 1rem; border-radius: 1px; }
+.v-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: #111827; }
+.v-card p { font-size: 0.875rem; color: #6b7280; }
+
+/* ── SWOT ── */
+.swot-section { background: #f9fafb; border-top: 0.5px solid #e5e7eb; border-bottom: 0.5px solid #e5e7eb; }
+.swot-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1px; background: #e5e7eb;
+  border: 0.5px solid #e5e7eb; border-radius: 14px;
+  overflow: hidden; margin-top: 3rem;
+}
+.sw-item { background: #fff; padding: 2rem; transition: background 0.2s; }
+.sw-item:hover { background: #f9fafb; }
+.sw-tag {
+  font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.1em;
+  font-weight: 700; margin-bottom: 1rem; display: inline-block;
+  padding: 0.25rem 0.9rem; border-radius: 100px;
+}
+.sw-s .sw-tag { background: #E1F5EE; color: #0F6E56; }
+.sw-w .sw-tag { background: #FAEEDA; color: #854F0B; }
+.sw-o .sw-tag { background: #E6F1FB; color: #185FA5; }
+.sw-t .sw-tag { background: #FCEBEB; color: #A32D2D; }
+.sw-item h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; color: #111827; }
+.sw-item ul { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+.sw-item li { 
+  font-size: 0.9rem; color: #4b5563; 
+  position: relative; 
+  padding-left: 1.5rem; /* 留出放圓點的空間 */
+  line-height: 1.5;
+}
+.sw-item li::before { 
+  content: ""; 
+  position: absolute; 
+  left: 0; 
+  top: 0.45rem; 
+  width: 6px; 
+  height: 6px; 
+  border-radius: 50%; 
+}
+.sw-s li::before { background-color: #0F6E56; box-shadow: 0 0 0 3px #E1F5EE; }
+.sw-w li::before { background-color: #854F0B; box-shadow: 0 0 0 3px #FAEEDA; }
+.sw-o li::before { background-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
+.sw-t li::before { background-color: #A32D2D; box-shadow: 0 0 0 3px #FCEBEB; }
+
+/* ── Team ── */
+.team-section { background: #fff; }
+.team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+.t-card {
+  background: #fff; 
+  border: 0.5px solid #e5e7eb;
+  border-radius: 14px; 
+  overflow: hidden; 
+  /* ✨ 新增漸變動畫時間 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  height: 500px;
+}
+
+/* ✨ 新增滑鼠移入時的漂浮與陰影效果 */
+.t-card:hover { 
+  border-color: #e5e7eb; 
+  transform: translateY(-8px); /* 向上浮動 8px */
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1); /* 產生立體柔和陰影 */
+}
+.t-img { width: 100%; height: 70%; object-fit: cover; display: block; }
+.t-img-placeholder {
+  width: 100%; height: 90px; background: #f3f4f6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; color: #d1d5db;
+}
+.t-info { padding: 1.25rem; }
+.t-id { font-size: 0.68rem; color: #9ca3af; font-family: "Courier New", monospace; margin-bottom: 0.35rem; }
+.t-name { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.3rem; color: #111827; }
+.t-role { font-size: 1rem; color: #1D9E75;margin-bottom: 0; }
+
+/* ── Footer ── */
+footer {
+  background: #dbe7f7; border-top: 0.5px solid #e5e7eb;
+  padding: 2.5rem 5%; text-align: center;
+}
+.footer-brand { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: #111827; }
+.footer-brand span { color: #1D9E75; }
+footer p { font-size: 1rem; color: #08224f; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .hamburger { display: flex;margin-left: auto; }
+  nav ul {
+    display: none; position: absolute; top: 80px; left: 0; right: 0;
+    background: rgba(46, 121, 226, 0.98); 
+    border-bottom: 0.5px solid #133a70;
+    flex-direction: column; padding: 0.5rem 5%;
+  }
+  nav ul.open { display: flex; }
+  nav a { 
+    padding: 0.1.5rem 0; display: block; 
+    border-bottom: 0.5px solid rgba(255,255,255,0.1); 
+    font-size: 1.1rem; 
+    color: #ffffff; 
+  }
+  /* ✨ 手機版 hover 的顏色 */
+  nav a:hover { color: #f7bf25; } 
+  nav li:last-child a { border-bottom: none; }
+  .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
+  .hero { padding: 3rem 5% 4rem;}
+  .value-grid { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: repeat(2, 1fr); }
+  .swot-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 540px) {
+  .team-grid { grid-template-columns: 1fr; }
+  section { padding: 4rem 4%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <div class="brand">Justi<span>AI</span></div>
+    <button class="hamburger" id="hbg" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav>
+      <ul id="navLinks">
+        <li><a href="#about">About</a></li>
+        <li><a href="#background">Background</a></li>
+        <li><a href="#value">Core Value</a></li>
+        <li><a href="#swot">SWOT</a></li>
+        <li><a href="#team">Team</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="about">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow">Legal Navigation Platform</div>
+      <img src="justiai.png" alt="JustiAI Logo" style="max-width: 300px; margin-bottom: 1.5rem; border-radius: 12px; ">
+      <h1>From legal advice<br>to <em>legal navigation</em></h1>
+      <p>JustiAI helps vulnerable users, migrant workers, and first-time legal system users understand what to do next — without replacing legal professionals.</p>
+      <div class="badges">
+        <span class="badge">Procedural Guidance</span>
+        <span class="badge">Low Legal Risk</span>
+        <span class="badge">Multilingual Support</span>
+        <span class="badge">Access to Justice</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="hc-label">Active case</div>
+        <div class="hc-title">Wage dispute — next steps</div>
+        <div class="progress-row">
+          <div class="pr-item">
+            <div class="pr-step done">✓</div>
+            <div class="pr-text">File complaint with labor bureau</div>
+          </div>
+          <div class="pr-item">
+            <div class="pr-step active">2</div>
+            <div class="pr-text active">Prepare supporting documents</div>
+          </div>
+          <div class="pr-item">
+            <div class="pr-step pending">3</div>
+            <div class="pr-text">Attend mediation session</div>
+          </div>
+          <div class="pr-item">
+            <div class="pr-step pending">4</div>
+            <div class="pr-text">Await outcome notification</div>
+          </div>
+        </div>
+        <div class="hc-bar">
+          <div class="hc-bar-icon">⚖️</div>
+          <div class="hc-bar-text">
+            <strong>Step 2 of 4</strong>
+            <span>Document checklist ready</span>
+          </div>
+        </div>
+        <div class="lang-row">
+          <span class="lang-pill">English</span>
+          <span class="lang-pill">中文</span>
+          <span class="lang-pill">Bahasa</span>
+          <span class="lang-pill">ภาษาไทย</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Background -->
+<section class="bg-section" id="background">
+  <div class="container">
+    <div class="heading-centered">
+      <div class="section-label">Product background</div>
+      <h2 class="section-heading">Access to justice is a systems problem</h2>
+      <p class="section-sub centered">Access to justice remains a fundamental challenge in Taiwan, particularly for migrant workers and low-income individuals. Traditional legal-tech focuses on advice — but users need procedural clarity. JustiAI bridges this gap by providing step-by-step navigation through existing legal institutions, reducing barriers without regulatory risks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Core Value -->
+<section class="value-section" id="value">
+  <div class="container">
+    <div class="section-label">Core value</div>
+    <h2 class="section-heading">Simplifying what feels<br>impossibly complex</h2>
+    <p class="section-sub">JustiAI focuses on simplifying legal procedures into clear, structured, and user-friendly steps.</p>
+    <div class="value-grid">
+      <div class="v-card">
+        <div class="v-num">01</div>
+        <div class="v-accent"></div>
+        <h2>Step-by-step guidance</h2>
+        <p>Breaks down complex legal procedures into simple actions, documents, and next steps anyone can follow.</p>
+      </div>
+      <div class="v-card">
+        <div class="v-num">02</div>
+        <div class="v-accent"></div>
+        <h2>Navigation, not advice</h2>
+        <p>Provides procedural direction while avoiding legal advice, keeping compliance risk minimal for both users and platform.</p>
+      </div>
+      <div class="v-card">
+        <div class="v-num">03</div>
+        <div class="v-accent"></div>
+        <h2>Inclusive design</h2>
+        <p>Supports multilingual access and user-friendly experiences designed specifically for underserved communities.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SWOT -->
+<section class="swot-section" id="swot">
+  <div class="container">
+    <div class="section-label">SWOT analysis</div>
+    <h2 class="section-heading">Strategic positioning</h2>
+    <p class="section-sub">A concise overview of JustiAI's competitive landscape.</p>
+    <div class="swot-grid">
+      <div class="sw-item sw-s">
+        <span class="sw-tag">Strengths</span>
+        <h3>What we do well</h3>
+        <ul>
+          <li>Clear focus on procedural navigation</li>
+          <li>Lower legal risk than advisory systems</li>
+          <li>Scalable across legal domains</li>
+        </ul>
+      </div>
+      <div class="sw-item sw-w">
+        <span class="sw-tag">Weaknesses</span>
+        <h3>Where we need work</h3>
+        <ul>
+          <li>Frequent procedural updates required</li>
+          <li>Trust building with vulnerable users</li>
+          <li>Limited early monetization</li>
+        </ul>
+      </div>
+      <div class="sw-item sw-o">
+        <span class="sw-tag">Opportunities</span>
+        <h3>Paths to grow</h3>
+        <ul>
+          <li>Growing migrant worker population</li>
+          <li>NGO and institutional partnerships</li>
+          <li>Regional expansion potential</li>
+        </ul>
+      </div>
+      <div class="sw-item sw-t">
+        <span class="sw-tag">Threats</span>
+        <h3>Risks to watch</h3>
+        <ul>
+          <li>Regulatory scrutiny</li>
+          <li>Competition from big tech</li>
+          <li>User misinterpretation risks</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team -->
+<section class="team-section" id="team">
+  <div class="container">
+    <div class="section-label">Team Members</div>
+    <div class="team-grid">
+      <div class="t-card">
+        <img src="Agie Photo.jpg" alt="Angella Burton Mwakisu" class="t-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="t-img-placeholder" style="display:none;">👤</div>
+        <div class="t-info">
+          <div class="t-name">Angella Burton Mwakisu (Angie)</div>
+          <div class="t-role">International Program in Urban Governance</div>
+        </div>
+      </div>
+      <div class="t-card">
+        <img src="hengning.jpg" alt="Heng-Ning Tseng" class="t-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="t-img-placeholder" style="display:none;">👤</div>
+        <div class="t-info">
+          <div class="t-name">Heng-Ning Tseng (Maggie)</div>
+          <div class="t-role">Graduate Institute of Information Management</div>
+        </div>
+      </div>
+      <div class="t-card">
+        <img src="yuhsin.jpg" alt="Yu-Hsin Lin" class="t-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="t-img-placeholder" style="display:none;">👤</div>
+        <div class="t-info">
+          <div class="t-name">Yu-Hsin Lin (Fiona)</div>
+          <div class="t-role">Graduate Institute of Information Management</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">Justi<span>AI</span></div>
+  <p>&copy; 2026 JustiAI Project Team &nbsp;·&nbsp; Empowering access to justice through procedural clarity.</p>
+</footer>
+
+<script>
+  const hbg = document.getElementById('hbg');
+  const navLinks = document.getElementById('navLinks');
+
+  hbg.addEventListener('click', () => {
+    hbg.classList.toggle('active');
+    navLinks.classList.toggle('open');
+  });
+
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 900) {
+        hbg.classList.remove('active');
+        navLinks.classList.remove('open');
+      }
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (window.innerWidth <= 900 && !hbg.contains(e.target) && !navLinks.contains(e.target)) {
+      hbg.classList.remove('active');
+      navLinks.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
