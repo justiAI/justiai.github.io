@@ -23,6 +23,7 @@ const copy = {
     stepsTitle: "程序步驟",
     docsTitle: "所需文件",
     agenciesTitle: "相關機構與網站",
+    agencyInstruction: "請點擊下方選項前往相關網站。",
     safety: "安全提醒：採取行動前，請向官方機關確認期限、送件方式與最新規定。",
     urgent: "若有人身安全、住宿或雇主控制等急迫問題，請優先聯繫公共專線或緊急服務。",
     language: "語言",
@@ -48,6 +49,7 @@ const copy = {
     stepsTitle: "Procedure steps",
     docsTitle: "Required documents",
     agenciesTitle: "Related agencies and websites",
+    agencyInstruction: "Tap an option below to open the related website.",
     safety: "Safety note: verify deadlines, filing methods, and latest rules with official agencies before taking action.",
     urgent: "For urgent safety, housing, or employer-control concerns, contact public hotlines or emergency services first.",
     language: "Language",
@@ -215,9 +217,9 @@ function getSession(sourceId) {
 }
 
 function languageFromText(text) {
-  const normalized = (text || "").toLowerCase();
-  if (["中文", "chinese", "zh"].some((keyword) => normalized.includes(keyword))) return "zh";
-  if (["english", "英文", "en"].some((keyword) => normalized.includes(keyword))) return "en";
+  const normalized = (text || "").trim().toLowerCase();
+  if (["中文", "chinese", "zh"].includes(normalized)) return "zh";
+  if (["english", "英文", "en"].includes(normalized)) return "en";
   return null;
 }
 
@@ -261,26 +263,27 @@ function issueQuickReply(lang) {
   return quickReply([
     messageAction(localize(routes.wage.label, lang), localize(routes.wage.label, lang)),
     messageAction(localize(routes.overtime.label, lang), localize(routes.overtime.label, lang)),
-    messageAction(localize(routes.injury.label, lang), localize(routes.injury.label, lang)),
-    messageAction(copy[lang].language, copy[lang].language)
+    messageAction(localize(routes.injury.label, lang), localize(routes.injury.label, lang))
   ]);
 }
 
-function actionQuickReply(lang) {
-  return quickReply([
-    messageAction(copy[lang].steps, copy[lang].steps),
-    messageAction(copy[lang].documents, copy[lang].documents),
-    messageAction(copy[lang].agencies, copy[lang].agencies),
-    messageAction(copy[lang].changeIssue, copy[lang].changeIssue),
-    messageAction(copy[lang].language, copy[lang].language)
-  ]);
+function actionQuickReply(lang, exclude = null) {
+  const actions = [
+    ["steps", copy[lang].steps],
+    ["documents", copy[lang].documents],
+    ["agencies", copy[lang].agencies],
+    ["restart", copy[lang].changeIssue]
+  ];
+
+  return quickReply(
+    actions
+      .filter(([key]) => key !== exclude)
+      .map(([, label]) => messageAction(label, label))
+  );
 }
 
 function agencyQuickReply(lang) {
-  return quickReply([
-    ...agencies.map((agency) => uriAction(localize(agency.label, lang), agency.url)),
-    messageAction(copy[lang].changeIssue, copy[lang].changeIssue)
-  ]);
+  return quickReply(agencies.map((agency) => uriAction(localize(agency.label, lang), agency.url)));
 }
 
 function textMessage(text, reply) {
@@ -323,8 +326,9 @@ function buildContent(route, option, lang) {
     return [
       `${copy[lang].agenciesTitle}: ${localize(route.label, lang)}`,
       "",
-      ...agencies.map((agency, index) => `${index + 1}. ${localize(agency.label, lang)}\n${agency.url}`),
+      bulletList(agencies.map((agency) => localize(agency.label, lang))),
       "",
+      copy[lang].agencyInstruction,
       copy[lang].urgent
     ].join("\n");
   }
@@ -345,6 +349,7 @@ function buildReply(text, sourceId) {
   if (langChoice) {
     session.lang = langChoice;
     session.issue = null;
+    session.lastOption = null;
     return textMessage(issuePrompt(session.lang), issueQuickReply(session.lang));
   }
 
@@ -358,17 +363,20 @@ function buildReply(text, sourceId) {
   if (option === "language") {
     session.lang = null;
     session.issue = null;
+    session.lastOption = null;
     return welcomeMessage();
   }
 
   if (option === "restart") {
     session.issue = null;
+    session.lastOption = null;
     return textMessage(issuePrompt(lang), issueQuickReply(lang));
   }
 
   const routeKey = matchRoute(text);
   if (routeKey) {
     session.issue = routeKey;
+    session.lastOption = null;
     return textMessage(actionPrompt(routes[routeKey], lang), actionQuickReply(lang));
   }
 
@@ -377,14 +385,16 @@ function buildReply(text, sourceId) {
   }
 
   if (option === "agencies") {
+    session.lastOption = option;
     return textMessage(buildContent(routes[session.issue], option, lang), agencyQuickReply(lang));
   }
 
   if (option === "documents" || option === "steps") {
-    return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang));
+    session.lastOption = option;
+    return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang, option));
   }
 
-  return textMessage(actionPrompt(routes[session.issue], lang), actionQuickReply(lang));
+  return textMessage(actionPrompt(routes[session.issue], lang), actionQuickReply(lang, session.lastOption));
 }
 
 async function replyMessages(replyToken, messages) {
