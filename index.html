@@ -22,6 +22,8 @@
   --red-soft: #fde7e7;
   --blue-soft: #bddbf4;
   --shadow: 0 18px 50px rgba(22, 37, 58, 0.12);
+  --shadow-soft: 0 12px 32px rgba(22, 37, 58, 0.09);
+  --radius: 8px;
 }
 
 *,
@@ -37,9 +39,15 @@ html {
   font-family: Inter, "Segoe UI", "Noto Sans TC", system-ui, -apple-system, sans-serif;
 }
 
+section {
+  scroll-margin-top: 84px;
+}
+
 body {
   min-height: 100vh;
-  background: #f7f8fb;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f7f8fb 42%, #eef4fb 100%),
+    #f7f8fb;
   color: var(--ink);
   line-height: 1.6;
 }
@@ -82,6 +90,7 @@ header {
   background: rgba(19, 77, 158, 0.97);
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(12, 33, 74, 0.14);
 }
 
 .nav-wrap {
@@ -107,7 +116,7 @@ header {
 .brand img {
   width: 38px;
   height: 38px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   object-fit: cover;
 }
 
@@ -180,13 +189,15 @@ nav a:focus-visible {
   transform: translateY(-6px) rotate(-45deg);
 }
 
-main { overflow: hidden; }
+main { overflow-x: hidden; }
 
 .intro-hero {
-  padding: 54px 24px 44px;
+  padding: 22px 24px 20px;
   display: flex;
   align-items: center;
-  background: var(--blue-soft);
+  background:
+    linear-gradient(120deg, rgba(189, 219, 244, 0.96) 0%, rgba(225, 245, 238, 0.86) 66%, rgba(250, 238, 218, 0.72) 100%),
+    var(--blue-soft);
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -200,9 +211,9 @@ main { overflow: hidden; }
 .intro-inner {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 52px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 420px);
+  gap: clamp(28px, 5vw, 56px);
+  align-items: end;
 }
 
 .intro-copy {
@@ -210,18 +221,19 @@ main { overflow: hidden; }
 }
 
 .intro-logo {
-  width: min(300px, 78vw);
-  margin: 18px 0 18px;
-  border-radius: 12px;
+  width: min(180px, 68vw);
+  margin: 10px 0 12px;
+  border-radius: var(--radius);
   display: block;
 }
 
 .intro-title {
   max-width: 760px;
-  font-size: clamp(2.4rem, 6vw, 5.1rem);
-  line-height: 1.02;
+  font-size: clamp(2.25rem, 4.9vw, 4.15rem);
+  line-height: 1;
   letter-spacing: 0;
   color: #111827;
+  text-wrap: balance;
 }
 
 .intro-title span {
@@ -230,8 +242,8 @@ main { overflow: hidden; }
 
 .intro-sub {
   max-width: 680px;
-  margin-top: 16px;
-  color: #4b5563;
+  margin-top: 12px;
+  color: #334155;
   font-size: 1.05rem;
 }
 
@@ -240,7 +252,7 @@ main { overflow: hidden; }
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  margin-top: 28px;
+  margin-top: 20px;
 }
 
 .start-btn,
@@ -252,6 +264,8 @@ main { overflow: hidden; }
   border-radius: 7px;
   padding: 0 18px;
   font-weight: 900;
+  text-align: center;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
 .start-btn {
@@ -266,6 +280,7 @@ main { overflow: hidden; }
   background: var(--navy-dark);
   outline: 3px solid rgba(247, 191, 37, 0.45);
   outline-offset: 2px;
+  transform: translateY(-1px);
 }
 
 .secondary-btn {
@@ -278,13 +293,14 @@ main { overflow: hidden; }
 .secondary-btn:focus-visible {
   border-color: var(--navy);
   outline: none;
+  transform: translateY(-1px);
 }
 
 .intro-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .intro-badge {
@@ -303,11 +319,11 @@ main { overflow: hidden; }
 }
 
 .intro-card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 26px;
-  box-shadow: 0 18px 48px rgba(19, 77, 158, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: 0 22px 58px rgba(19, 77, 158, 0.18);
 }
 
 .intro-card-label {
@@ -323,13 +339,13 @@ main { overflow: hidden; }
   color: #111827;
   font-size: 1.25rem;
   font-weight: 900;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .intro-steps {
   display: grid;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .intro-step {
@@ -367,16 +383,16 @@ main { overflow: hidden; }
   grid-template-columns: 46px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
-  padding: 14px;
+  padding: 12px;
   border: 1px solid var(--navy);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: #ffffff;
 }
 
 .intro-note-icon {
   width: 46px;
   height: 46px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: var(--green-soft);
   display: inline-flex;
   align-items: center;
@@ -401,15 +417,15 @@ main { overflow: hidden; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  margin-top: 22px;
+  margin-top: 14px;
 }
 
 .intro-feature {
-  min-height: 118px;
+  min-height: 86px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(209, 213, 219, 0.9);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
 }
 
 .intro-feature strong {
@@ -1002,7 +1018,7 @@ select:focus-visible,
 }
 
 .band {
-  padding: 72px 24px;
+  padding: 68px 24px;
   background: #fff;
 }
 
@@ -1018,6 +1034,17 @@ select:focus-visible,
   font-size: clamp(1.75rem, 3vw, 2.7rem);
   line-height: 1.14;
   letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.section-heading::after {
+  content: "";
+  width: 52px;
+  height: 4px;
+  display: block;
+  margin-top: 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--green), var(--amber));
 }
 
 .section-sub {
@@ -1030,31 +1057,31 @@ select:focus-visible,
 .impact-grid,
 .team-grid {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   margin-top: 28px;
 }
 
 .story-grid,
 .doc-grid {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   margin-top: 28px;
 }
 
 .route-grid {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
 }
 
 .story-grid {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .doc-grid {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
 }
 
 .impact-grid {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
 }
 
 .route-tile,
@@ -1063,9 +1090,20 @@ select:focus-visible,
 .doc-card {
   min-height: 150px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fff;
   padding: 18px;
+  box-shadow: 0 1px 0 rgba(22, 37, 58, 0.03);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.route-tile:hover,
+.impact-tile:hover,
+.story-card:hover,
+.doc-card:hover {
+  transform: translateY(-2px);
+  border-color: #bfd1e2;
+  box-shadow: var(--shadow-soft);
 }
 
 .route-tile strong,
@@ -1129,6 +1167,8 @@ select:focus-visible,
   color: #fff;
   font-size: 0.84rem;
   font-weight: 900;
+  text-align: center;
+  white-space: normal;
 }
 
 .doc-link:hover,
@@ -1140,33 +1180,94 @@ select:focus-visible,
 
 .demo-showcase {
   display: grid;
-  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(260px, 0.68fr) minmax(0, 1.32fr);
   gap: 18px;
   margin-top: 28px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .qr-card,
 .architecture-card,
 .screen-card {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fff;
   padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.qr-card {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .qr-card img {
-  width: 188px;
-  height: 188px;
+  width: min(214px, 72vw);
+  height: auto;
   display: block;
-  margin: 18px auto;
+  margin: 8px auto 4px;
   border: 8px solid #fff;
   box-shadow: 0 10px 28px rgba(19, 77, 158, 0.12);
+}
+
+.line-id-box {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.line-id-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.line-id-copy {
+  width: 100%;
+  min-height: 54px;
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  border: 1px solid #bfd1e2;
+  border-radius: var(--radius);
+  background: #f8fbff;
+  color: var(--navy-dark);
+  padding: 10px 12px;
+  text-align: center;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.line-id-copy:hover,
+.line-id-copy:focus-visible {
+  border-color: var(--navy);
+  background: #eef6ff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.line-id-value {
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.line-id-status {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 760;
 }
 
 .qr-actions {
   display: grid;
   gap: 10px;
+}
+
+.qr-actions:empty {
+  display: none;
 }
 
 .qr-actions .doc-link {
@@ -1189,6 +1290,7 @@ select:focus-visible,
 .screen-card {
   min-height: 230px;
   background: linear-gradient(180deg, #ffffff 0%, #f4f8fc 100%);
+  box-shadow: none;
 }
 
 .screen-top {
@@ -1205,7 +1307,7 @@ select:focus-visible,
 
 .screen-bubble {
   margin-top: 12px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 10px;
   background: var(--green-soft);
   color: #0F6E56;
@@ -1227,10 +1329,17 @@ select:focus-visible,
   color: #40536a;
   padding: 6px 8px;
   font-size: 0.78rem;
+  word-break: break-word;
 }
 
 .architecture-card {
   margin-top: 14px;
+}
+
+.architecture-card > strong {
+  display: block;
+  color: #10243f;
+  font-size: 1rem;
 }
 
 .architecture-flow {
@@ -1246,7 +1355,7 @@ select:focus-visible,
   align-content: center;
   gap: 5px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #f9fafb;
   padding: 10px;
   text-align: center;
@@ -1262,6 +1371,70 @@ select:focus-visible,
   font-size: 0.75rem;
 }
 
+.video-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  gap: 18px;
+  margin-top: 28px;
+  align-items: stretch;
+}
+
+.video-frame,
+.video-note {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.video-frame {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(19, 77, 158, 0.1), rgba(29, 158, 117, 0.1)),
+    #ffffff;
+}
+
+.video-placeholder {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(19, 77, 158, 0.24);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--navy);
+}
+
+.video-placeholder::before {
+  content: "";
+  width: 0;
+  height: 0;
+  margin-left: 6px;
+  border-top: 17px solid transparent;
+  border-bottom: 17px solid transparent;
+  border-left: 26px solid var(--navy);
+}
+
+.video-note {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 20px;
+}
+
+.video-note strong {
+  color: #10243f;
+  font-size: 1.05rem;
+}
+
+.video-note span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .boundary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1275,7 +1448,7 @@ select:focus-visible,
   gap: 1px;
   margin-top: 28px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--line);
 }
@@ -1413,9 +1586,16 @@ select:focus-visible,
 
 .team-card {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: #fff;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(22, 37, 58, 0.13);
 }
 
 .team-card img {
@@ -1483,7 +1663,8 @@ footer strong {
   }
 
   .screen-grid,
-  .architecture-flow {
+  .architecture-flow,
+  .video-panel {
     grid-template-columns: 1fr;
   }
 
@@ -1495,6 +1676,7 @@ footer strong {
 @media (max-width: 760px) {
   .nav-wrap {
     min-height: 64px;
+    padding: 0 16px;
   }
 
   .hamburger {
@@ -1530,6 +1712,11 @@ footer strong {
     padding-right: 16px;
   }
 
+  .intro-hero {
+    padding-top: 36px;
+    padding-bottom: 40px;
+  }
+
   .intro-inner,
   .workspace-header,
   .result-hero,
@@ -1541,6 +1728,7 @@ footer strong {
   .story-grid,
   .doc-grid,
   .demo-showcase,
+  .video-panel,
   .team-grid,
   .canvas-grid {
     grid-template-columns: 1fr;
@@ -1580,6 +1768,14 @@ footer strong {
     width: 100%;
   }
 
+  .intro-card {
+    padding: 20px;
+  }
+
+  .intro-feature {
+    min-height: auto;
+  }
+
   .team-card img {
     height: 260px;
   }
@@ -1616,7 +1812,7 @@ footer strong {
 </style>
 </head>
 <body>
-<a class="skip-link" href="#demo" data-i18n="skip">Skip to demo</a>
+<a class="skip-link" href="#reports" data-i18n="skip">Skip to demo</a>
 
 <header>
   <div class="nav-wrap">
@@ -1632,7 +1828,7 @@ footer strong {
         <li><a href="#users" data-i18n="navUsers">Users</a></li>
         <li><a href="#value" data-i18n="navValue">Core Value</a></li>
         <li><a href="#swot" data-i18n="navSwot">SWOT</a></li>
-        <li><a href="#reports" data-i18n="navReports">Reports</a></li>
+        <li><a href="#reports" data-i18n="navReports">Flow</a></li>
         <li><a href="#demo" data-i18n="navDemo">Demo</a></li>
         <li><a href="#team" data-i18n="navTeam">Team</a></li>
       </ul>
@@ -1649,7 +1845,7 @@ footer strong {
         <h1 class="intro-title" data-i18n="heroTitle">From legal advice to <span>legal navigation</span>.</h1>
         <p class="intro-sub" data-i18n="heroSub">JustiAI helps vulnerable users, workers, and first-time legal system users understand what to do next without replacing legal professionals.</p>
         <div class="intro-actions">
-          <a class="start-btn" href="demo.html" data-i18n="startButton">Try Demo</a>
+          <a class="start-btn" href="#reports" data-i18n="startButton">Try Now</a>
           <a class="secondary-btn" href="#background" data-i18n="learnButton">See how it works</a>
           <div class="language-switch" aria-label="Language">
             <button type="button" class="lang-btn" data-lang-option="en">EN</button>
@@ -1738,7 +1934,6 @@ footer strong {
   <section class="band alt" id="users">
     <div class="section-inner">
       <h2 class="section-heading" data-i18n="usersTitle">User scenarios</h2>
-      <p class="section-sub" data-i18n="usersSub">Inspired by the reference projects' user-story sections, JustiAI frames the product around concrete people and procedures.</p>
       <div class="story-grid">
         <article class="story-card">
           <span class="story-role" data-i18n="storyOneRole">Migrant worker</span>
@@ -1826,38 +2021,16 @@ footer strong {
 
   <section class="band" id="reports">
     <div class="section-inner">
-      <h2 class="section-heading" data-i18n="reportsTitle">Project documentation and demo</h2>
-      <div class="doc-grid">
-        <div class="doc-card">
-          <div>
-            <strong data-i18n="reportTwoTitle">System architecture</strong>
-            <span data-i18n="reportTwoText">The prototype uses structured procedural data, bilingual UI text, and rule-based navigation logic.</span>
-          </div>
-          <a class="doc-link" href="#knowledge" data-i18n="reportTwoAction">View knowledge base</a>
-        </div>
-        <div class="doc-card">
-          <div>
-            <strong data-i18n="reportThreeTitle">Live prototype</strong>
-            <span data-i18n="reportThreeText">The legal navigator is the working demo: choose a labor issue and generate a route, checklist, and agency links.</span>
-          </div>
-          <a class="doc-link" href="demo.html" data-i18n="reportThreeAction">Try demo</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band alt" id="demo">
-    <div class="section-inner">
-      <h2 class="section-heading" data-i18n="demoTitle">Demo entry and system architecture</h2>
-      <p class="section-sub" data-i18n="demoSub">The website now works like the reference projects: it explains the project, then sends users to a chatbot-style demo that can later be replaced by a real LINE bot.</p>
+      <h2 class="section-heading" data-i18n="reportsTitle">flow</h2>
       <div class="demo-showcase">
         <div class="qr-card">
-          <strong data-i18n="demoQrTitle">Scan to try the demo</strong>
-          <span data-i18n="demoQrText">The QR code points to the external JustiAI chatbot demo page.</span>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fjustiai.github.io%2Fdemo.html" alt="JustiAI demo QR code" data-i18n-alt="qrAlt">
-          <div class="qr-actions">
-            <a class="doc-link" href="demo.html" data-i18n="demoTryButton">Open web chatbot</a>
-            <a class="doc-link" href="line-bot/README.md" data-i18n="lineBotButton">View LINE bot scaffold</a>
+          <img src="https://qr-official.line.me/sid/L/682aqdkv.png" alt="JustiAI Line QR code" data-i18n-alt="qrAlt">
+          <div class="line-id-box">
+            <span class="line-id-label" data-i18n="lineIdLabel">Manual LINE ID</span>
+            <button type="button" class="line-id-copy" id="lineIdCopyBtn" data-line-id="@682aqdkv">
+              <span class="line-id-value">LINE ID: @682aqdkv</span>
+              <span class="line-id-status" data-i18n="lineIdCopy">Click to copy</span>
+            </button>
           </div>
         </div>
         <div>
@@ -1920,32 +2093,17 @@ footer strong {
     </div>
   </section>
 
-  <section class="band alt" id="team">
+  <section class="band alt" id="demo">
     <div class="section-inner">
-      <h2 class="section-heading" data-i18n="teamTitle">Team 6</h2>
-      <p class="section-sub" data-i18n="teamSub">114-2 Software Engineering final project implementation based on the JustiAI midterm proposal.</p>
-      <div class="team-grid">
-        <article class="team-card">
-          <img src="Agie Photo.jpg" alt="Angella Burton Mwakisu">
-          <div class="team-info">
-            <strong>Angella Burton Mwakisu (Angie)</strong>
-            <span>International Program in Urban Governance</span>
-          </div>
-        </article>
-        <article class="team-card">
-          <img src="hengning.jpg" alt="Heng-Ning Tseng">
-          <div class="team-info">
-            <strong>Heng-Ning Tseng (Maggie)</strong>
-            <span>Graduate Institute of Information Management</span>
-          </div>
-        </article>
-        <article class="team-card">
-          <img src="yuhsin.jpg" alt="Yu-Hsin Lin">
-          <div class="team-info">
-            <strong>Yu-Hsin Lin (Fiona)</strong>
-            <span>Graduate Institute of Information Management</span>
-          </div>
-        </article>
+      <h2 class="section-heading" data-i18n="demoTitle">Demo video</h2>
+      <div class="video-panel">
+        <div class="video-frame" aria-label="Demo video placeholder">
+          <div class="video-placeholder" aria-hidden="true"></div>
+        </div>
+        <div class="video-note">
+          <strong data-i18n="demoVideoTitle">Walkthrough video placeholder</strong>
+          <span data-i18n="demoVideoText">The final recording can be embedded here after the LINE bot demo is captured.</span>
+        </div>
       </div>
     </div>
   </section>
@@ -2083,7 +2241,6 @@ footer strong {
   <section class="band" id="knowledge">
     <div class="section-inner">
       <h2 class="section-heading" data-i18n="knowledgeTitle">Procedural knowledge base</h2>
-      <p class="section-sub" data-i18n="knowledgeSub">The first JustiAI domain covers common labor routes in Taiwan: mediation, labor inspection, legal aid, and migrant worker support.</p>
       <div class="route-grid">
         <div class="route-tile">
           <strong data-i18n="kbMediationTitle">Labor mediation</strong>
@@ -2108,7 +2265,6 @@ footer strong {
   <section class="band alt" id="boundaries">
     <div class="section-inner">
       <h2 class="section-heading" data-i18n="boundariesTitle">Legal-safety boundaries</h2>
-      <p class="section-sub" data-i18n="boundariesSub">JustiAI is designed around procedural navigation. The product avoids advisory claims that could mislead vulnerable users or create legal-practice risk.</p>
       <div class="boundary-grid">
         <div class="boundary-box">
           <div class="boundary-title" data-i18n="allowedTitle">Allowed output</div>
@@ -2132,6 +2288,35 @@ footer strong {
     </div>
   </section>
 
+  <section class="band" id="team">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="teamTitle">Team</h2>
+      <div class="team-grid">
+        <article class="team-card">
+          <img src="Agie Photo.jpg" alt="Angella Burton Mwakisu">
+          <div class="team-info">
+            <strong>Angella Burton Mwakisu (Angie)</strong>
+            <span>International Program in Urban Governance</span>
+          </div>
+        </article>
+        <article class="team-card">
+          <img src="hengning.jpg" alt="Heng-Ning Tseng">
+          <div class="team-info">
+            <strong>Heng-Ning Tseng (Maggie)</strong>
+            <span>Graduate Institute of Information Management</span>
+          </div>
+        </article>
+        <article class="team-card">
+          <img src="yuhsin.jpg" alt="Yu-Hsin Lin">
+          <div class="team-info">
+            <strong>Yu-Hsin Lin (Fiona)</strong>
+            <span>Graduate Institute of Information Management</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -2147,8 +2332,8 @@ const copy = {
     navUsers: "Users",
     navValue: "Core Value",
     navSwot: "SWOT",
-    navReports: "Reports",
-    navDemo: "Demo",
+    navReports: "Flow",
+    navDemo: "Video",
     navNavigator: "Start",
     navKnowledge: "Knowledge Base",
     navBoundaries: "Boundaries",
@@ -2157,7 +2342,7 @@ const copy = {
     kicker: "Procedural legal navigation",
     heroTitle: "From legal advice to <span>legal navigation</span>.",
     heroSub: "JustiAI helps vulnerable users, workers, and first-time legal system users understand what to do next without replacing legal professionals.",
-    startButton: "Try Demo",
+    startButton: "Try Now",
     learnButton: "See how it works",
     badgeProcedure: "Procedural Guidance",
     badgeSafe: "Navigation, not advice",
@@ -2180,7 +2365,6 @@ const copy = {
     backgroundFourTitle: "Safer legal-tech",
     backgroundFourText: "JustiAI reduces friction while avoiding automated legal advice.",
     usersTitle: "User scenarios",
-    usersSub: "Inspired by the reference projects' user-story sections, JustiAI frames the product around concrete people and procedures.",
     storyOneRole: "Migrant worker",
     storyOneTitle: "Ana needs unpaid wage help",
     storyOneText: "Ana is unsure whether to call a hotline, contact the employer, or apply for mediation. JustiAI helps her organize wage records and identify the labor authority route.",
@@ -2219,22 +2403,20 @@ const copy = {
     swotTOne: "Regulatory scrutiny and privacy concerns.",
     swotTTwo: "Competition from established technology firms.",
     swotTThree: "Users may misunderstand AI outputs without clear boundaries.",
-    reportsTitle: "Project documentation",
+    reportsTitle: "Flow",
     reportOneText: "The project is based on procedural barriers, access to justice, and safer legal-tech design.",
     reportOneAction: "View background",
     reportTwoTitle: "System architecture",
     reportTwoText: "The prototype uses structured procedural data, bilingual UI text, and rule-based navigation logic.",
     reportTwoAction: "View knowledge base",
-    reportThreeTitle: "Live prototype",
-    reportThreeText: "The web chatbot is the working demo and can later be replaced by the deployed LINE bot.",
-    reportThreeAction: "Try demo",
-    demoTitle: "Demo entry and system architecture",
-    demoSub: "The website now works like the reference projects: it explains the project, then sends users to a chatbot-style demo that can later be replaced by a real LINE bot.",
-    demoQrTitle: "Scan to try the demo",
-    demoQrText: "The QR code points to the external JustiAI chatbot demo page.",
-    qrAlt: "JustiAI demo QR code",
-    demoTryButton: "Open web chatbot",
-    lineBotButton: "View LINE bot scaffold",
+    demoTitle: "Demo video",
+    demoVideoTitle: "Walkthrough video placeholder",
+    demoVideoText: "The final recording can be embedded here after the LINE bot demo is captured.",
+    qrAlt: "JustiAI LINE QR code",
+    lineIdLabel: "Manual LINE ID",
+    lineIdCopy: "Click to copy",
+    lineIdCopied: "Copied",
+    lineIdCopyFailed: "Copy failed",
     screenOneTop: "Step 1",
     screenOneBubble: "Choose a labor issue.",
     screenOneLineA: "Unpaid wages",
@@ -2296,7 +2478,6 @@ const copy = {
     boundaryOk: "OK",
     boundaryUrgent: "Urgent",
     knowledgeTitle: "Procedural knowledge base",
-    knowledgeSub: "The first JustiAI domain covers common labor routes in Taiwan: mediation, labor inspection, legal aid, and migrant worker support.",
     kbMediationTitle: "Labor mediation",
     kbMediationText: "Organize facts, submit an application, attend mediation, and keep the written record.",
     kbInspectionTitle: "Complaint or inspection",
@@ -2306,7 +2487,6 @@ const copy = {
     kbMigrantTitle: "Migrant worker support",
     kbMigrantText: "Use worker hotlines and public agencies when language, employer control, or housing concerns affect access.",
     boundariesTitle: "Legal-safety boundaries",
-    boundariesSub: "JustiAI is designed around procedural navigation. The product avoids advisory claims that could mislead vulnerable users or create legal-practice risk.",
     allowedTitle: "Allowed output",
     allowedOne: "Explain public procedures and required documents.",
     allowedTwo: "Suggest institutions that can receive complaints or provide help.",
@@ -2343,8 +2523,7 @@ const copy = {
     canvasCostsText: "Technology development, compliance review, data updates, outreach.",
     canvasRevenue: "Revenue streams",
     canvasRevenueText: "Government grants, NGO partnerships, institutional licensing.",
-    teamTitle: "Team 6",
-    teamSub: "114-2 Software Engineering final project implementation based on the JustiAI midterm proposal.",
+    teamTitle: "Team",
     footerText: "Empowering access to justice through procedural clarity."
   },
   zh: {
@@ -2354,17 +2533,17 @@ const copy = {
     navUsers: "使用者",
     navValue: "核心價值",
     navSwot: "SWOT",
-    navReports: "文件",
-    navDemo: "Demo",
+    navReports: "流程",
+    navDemo: "示範影片",
     navNavigator: "開始",
     navKnowledge: "知識庫",
     navBoundaries: "安全邊界",
     navImpact: "成果",
     navTeam: "團隊",
     kicker: "程序型法律導航",
-    heroTitle: "從法律建議轉向<span>程序導航</span>。",
+    heroTitle: "從法律建議轉向<br><span>程序導航。</span>",
     heroSub: "JustiAI 幫助弱勢使用者、勞工與第一次接觸法律制度的人，理解下一步該做什麼，同時不取代法律專業人員。",
-    startButton: "Try Demo",
+    startButton: "立即試用",
     learnButton: "了解運作方式",
     badgeProcedure: "程序指引",
     badgeSafe: "導航，不是法律建議",
@@ -2387,7 +2566,6 @@ const copy = {
     backgroundFourTitle: "更安全的法律科技",
     backgroundFourText: "JustiAI 降低程序摩擦，同時避免自動化法律建議。",
     usersTitle: "使用者情境",
-    usersSub: "參考學長姐作品的 user-story 呈現方式，JustiAI 以具體使用者與程序需求來說明產品價值。",
     storyOneRole: "移工",
     storyOneTitle: "Ana 需要處理薪資未付",
     storyOneText: "Ana 不確定該打專線、聯繫雇主，還是申請調解。JustiAI 協助她整理薪資紀錄，並找出適合的勞政機關程序。",
@@ -2426,22 +2604,20 @@ const copy = {
     swotTOne: "監管審查與資料隱私疑慮。",
     swotTTwo: "大型科技公司可能進入競爭。",
     swotTThree: "若邊界不清，使用者可能誤解 AI 輸出。",
-    reportsTitle: "專案文件",
+    reportsTitle: "流程",
     reportOneText: "專案建立在程序障礙、司法近用與安全法律科技設計之上。",
     reportOneAction: "查看背景",
     reportTwoTitle: "系統架構",
     reportTwoText: "原型使用結構化程序資料、雙語介面文字與規則式導航邏輯。",
     reportTwoAction: "查看知識庫",
-    reportThreeTitle: "可操作原型",
-    reportThreeText: "Web chatbot 是目前可操作 demo，之後可替換成正式部署的 LINE bot。",
-    reportThreeAction: "試用 demo",
-    demoTitle: "Demo 入口與系統架構",
-    demoSub: "網站現在採用類似學長姐作品的形式：先介紹專案，再把使用者導向 chatbot demo，之後可替換成真正的 LINE bot。",
-    demoQrTitle: "掃描 QR code 試用 demo",
-    demoQrText: "QR code 會連到 JustiAI 外部 chatbot demo 頁面。",
-    qrAlt: "JustiAI demo QR code",
-    demoTryButton: "開啟 Web Chatbot",
-    lineBotButton: "查看 LINE bot scaffold",
+    demoTitle: "示範影片",
+    demoVideoTitle: "操作示範影片預留區",
+    demoVideoText: "完成 LINE bot 操作錄影後，可以把影片嵌入這個位置。",
+    qrAlt: "JustiAI LINE QR code",
+    lineIdLabel: "可手動輸入",
+    lineIdCopy: "點擊複製 LINE ID",
+    lineIdCopied: "已複製 LINE ID",
+    lineIdCopyFailed: "複製失敗",
     screenOneTop: "步驟 1",
     screenOneBubble: "選擇勞動問題。",
     screenOneLineA: "薪資未付",
@@ -2503,7 +2679,6 @@ const copy = {
     boundaryOk: "正常",
     boundaryUrgent: "急迫",
     knowledgeTitle: "程序知識庫",
-    knowledgeSub: "JustiAI 第一個領域聚焦台灣常見勞動程序：調解、申訴或檢查、法律扶助、移工支援。",
     kbMediationTitle: "勞資爭議調解",
     kbMediationText: "整理事實、提出申請、參與調解，並保存調解紀錄。",
     kbInspectionTitle: "申訴或勞動檢查",
@@ -2513,7 +2688,6 @@ const copy = {
     kbMigrantTitle: "移工支援",
     kbMigrantText: "當語言、雇主控制或住宿問題影響求助時，可使用專線與公共機構資源。",
     boundariesTitle: "法律安全邊界",
-    boundariesSub: "JustiAI 的設計核心是程序導航，避免可能誤導弱勢使用者或構成法律執業風險的自動化法律意見。",
     allowedTitle: "允許的輸出",
     allowedOne: "說明公開程序與所需文件。",
     allowedTwo: "建議可受理申訴或提供協助的機構。",
@@ -2550,8 +2724,7 @@ const copy = {
     canvasCostsText: "技術開發、合規審查、資料更新、推廣合作。",
     canvasRevenue: "收入來源",
     canvasRevenueText: "政府補助、NGO 合作、機構授權。",
-    teamTitle: "Team 6",
-    teamSub: "114-2 Software Engineering 期末專案，根據 JustiAI 期中提案完成實作。",
+    teamTitle: "團隊",
     footerText: "透過程序清晰度，提升司法近用。"
   }
 };
@@ -3182,6 +3355,28 @@ function buildPlainTextPlan() {
   return lines.join("\n");
 }
 
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (error) {
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.append(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, text.length);
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  return copied;
+}
+
 $("#locationSelect").addEventListener("change", (event) => {
   state.location = event.target.value;
   saveState();
@@ -3217,21 +3412,21 @@ $$(".lang-btn").forEach((button) => {
 $("#copyPlanBtn").addEventListener("click", async () => {
   const button = $("#copyPlanBtn");
   const original = t("copyPlan");
-  try {
-    await navigator.clipboard.writeText(buildPlainTextPlan());
-    button.textContent = t("copied");
-  } catch (error) {
-    const textarea = document.createElement("textarea");
-    textarea.value = buildPlainTextPlan();
-    document.body.append(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    textarea.remove();
-    button.textContent = t("copied");
-  }
+  const copied = await copyToClipboard(buildPlainTextPlan());
+  button.textContent = copied ? t("copied") : original;
   setTimeout(() => {
     button.textContent = original;
   }, 1200);
+});
+
+$("#lineIdCopyBtn").addEventListener("click", async () => {
+  const button = $("#lineIdCopyBtn");
+  const status = button.querySelector(".line-id-status");
+  const copied = await copyToClipboard(button.dataset.lineId);
+  status.textContent = copied ? t("lineIdCopied") : t("lineIdCopyFailed");
+  setTimeout(() => {
+    status.textContent = t("lineIdCopy");
+  }, 1400);
 });
 
 $("#printPlanBtn").addEventListener("click", () => window.print());
