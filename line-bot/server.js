@@ -4,6 +4,11 @@ import { createServer } from "node:http";
 const channelSecret = process.env.LINE_CHANNEL_SECRET;
 const channelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const port = Number(process.env.PORT || 3000);
+const defaultSessionTtlMs = 30 * 60 * 1000;
+const configuredSessionTtlMs = Number(process.env.SESSION_TTL_MS);
+const sessionTtlMs = Number.isFinite(configuredSessionTtlMs) && configuredSessionTtlMs > 0
+  ? configuredSessionTtlMs
+  : defaultSessionTtlMs;
 
 const copy = {
   zh: {
@@ -19,6 +24,7 @@ const copy = {
     chooseIssue: "請選擇你遇到的問題類型。",
     chooseAction: "你想查看哪一項？",
     selected: "已選擇",
+    sessionExpired: "你已閒置一段時間。為了避免使用到舊選項，請重新選擇問題類型。",
     issueFirst: "請先選擇問題類型，再選擇程序、文件或機構。",
     stepsTitle: "程序步驟",
     docsTitle: "所需文件",
@@ -45,6 +51,7 @@ const copy = {
     chooseIssue: "Please choose the issue you are facing.",
     chooseAction: "What would you like to view?",
     selected: "Selected",
+    sessionExpired: "You have been idle for a while. To avoid using old options, please choose the issue again.",
     issueFirst: "Please choose an issue first, then choose steps, documents, or agencies.",
     stepsTitle: "Procedure steps",
     docsTitle: "Required documents",
@@ -217,10 +224,51 @@ function bulletList(items) {
   return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
 }
 
+function createSession(overrides = {}) {
+  return {
+    lang: null,
+    issue: null,
+    lastOption: null,
+    updatedAt: Date.now(),
+    expired: false,
+    ...overrides
+  };
+}
+
 function getSession(sourceId) {
-  const session = userSessions.get(sourceId) || { lang: null, issue: null };
+  const existing = userSessions.get(sourceId);
+
+  if (!existing) {
+    const newSession = createSession();
+    userSessions.set(sourceId, newSession);
+    return newSession;
+  }
+
+  const now = Date.now();
+  const isExpired = now - (existing.updatedAt || 0) > sessionTtlMs;
+  if (isExpired) {
+    const expiredSession = createSession({
+      lang: existing.lang,
+      issue: null,
+      lastOption: null,
+      updatedAt: now,
+      expired: true
+    });
+    userSessions.set(sourceId, expiredSession);
+    return expiredSession;
+  }
+
+  const session = {
+    ...existing,
+    updatedAt: now,
+    expired: false
+  };
   userSessions.set(sourceId, session);
   return session;
+}
+
+function getSourceId(event) {
+  return event.source?.userId || event.source?.groupId || event.source?.roomId || "anonymous";
 }
 
 function languageFromText(text) {
@@ -303,11 +351,29 @@ function welcomeMessage() {
   return textMessage(copy.zh.welcome, languageQuickReply());
 }
 
+function expiredWelcomeMessage() {
+  return textMessage([
+    "你已閒置一段時間，系統需要重新開始。",
+    "請先選擇語言，再重新選擇問題類型。",
+    "",
+    "You have been idle for a while, so JustiAI needs to restart.",
+    "Please choose a language, then choose the issue again."
+  ].join("\n"), languageQuickReply());
+}
+
 function issuePrompt(lang) {
   return [
     copy[lang].chooseIssue,
     "",
     copy[lang].safety
+  ].join("\n");
+}
+
+function expiredIssuePrompt(lang) {
+  return [
+    copy[lang].sessionExpired,
+    "",
+    issuePrompt(lang)
   ].join("\n");
 }
 
@@ -351,20 +417,40 @@ function buildContent(route, option, lang) {
 function buildReply(text, sourceId) {
   const session = getSession(sourceId);
   const langChoice = languageFromText(text);
+  const option = optionFromText(text);
+  const routeKey = matchRoute(text);
 
   if (langChoice) {
     session.lang = langChoice;
     session.issue = null;
     session.lastOption = null;
+    session.updatedAt = Date.now();
+    session.expired = false;
     return textMessage(issuePrompt(session.lang), issueQuickReply(session.lang));
   }
 
+  if (session.expired) {
+    session.expired = false;
+    if (session.lang && option !== "language") {
+      return textMessage(expiredIssuePrompt(session.lang), issueQuickReply(session.lang));
+    }
+    session.lang = null;
+    session.issue = null;
+    session.lastOption = null;
+    return expiredWelcomeMessage();
+  }
+
   if (!session.lang) {
+    if (option === "language") {
+      return welcomeMessage();
+    }
+    if (option || routeKey) {
+      return expiredWelcomeMessage();
+    }
     return welcomeMessage();
   }
 
   const lang = session.lang;
-  const option = optionFromText(text);
 
   if (option === "language") {
     session.lang = null;
@@ -379,7 +465,6 @@ function buildReply(text, sourceId) {
     return textMessage(issuePrompt(lang), issueQuickReply(lang));
   }
 
-  const routeKey = matchRoute(text);
   if (routeKey) {
     session.issue = routeKey;
     session.lastOption = null;
@@ -403,26 +488,60 @@ function buildReply(text, sourceId) {
   return textMessage(actionPrompt(routes[session.issue], lang), actionQuickReply(lang, session.lastOption));
 }
 
-async function replyMessages(replyToken, messages) {
+async function sendLineApi(path, body) {
   if (!channelAccessToken) {
     throw new Error("Missing LINE_CHANNEL_ACCESS_TOKEN");
   }
 
-  const response = await fetch("https://api.line.me/v2/bot/message/reply", {
+  const response = await fetch(`https://api.line.me${path}`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${channelAccessToken}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      replyToken,
-      messages
-    })
+    body: JSON.stringify(body)
   });
 
   if (!response.ok) {
-    throw new Error(`LINE reply failed: ${response.status} ${await response.text()}`);
+    throw new Error(`LINE API failed: ${path} ${response.status} ${await response.text()}`);
   }
+}
+
+async function replyMessages(replyToken, messages) {
+  if (!replyToken) {
+    throw new Error("Missing LINE replyToken");
+  }
+  await sendLineApi("/v2/bot/message/reply", { replyToken, messages });
+}
+
+async function pushMessages(to, messages) {
+  if (!to || to === "anonymous") {
+    throw new Error("Missing LINE push target");
+  }
+  await sendLineApi("/v2/bot/message/push", { to, messages });
+}
+
+async function deliverMessages(event, messages) {
+  const target = getSourceId(event);
+
+  try {
+    await replyMessages(event.replyToken, messages);
+  } catch (replyError) {
+    console.error("LINE reply failed; trying push fallback.", replyError);
+    await pushMessages(target, messages);
+  }
+}
+
+async function handleLineEvent(event) {
+  if (event.type === "follow") {
+    await deliverMessages(event, [welcomeMessage()]);
+    return;
+  }
+
+  if (event.type !== "message" || event.message?.type !== "text") return;
+
+  const sourceId = getSourceId(event);
+  await deliverMessages(event, [buildReply(event.message.text, sourceId)]);
 }
 
 function readBody(request) {
@@ -479,19 +598,12 @@ const server = createServer(async (request, response) => {
     const payload = JSON.parse(bodyBuffer.toString("utf8"));
     const events = payload.events || [];
 
-    await Promise.all(events.map(async (event) => {
-      if (event.type === "follow") {
-        await replyMessages(event.replyToken, [welcomeMessage()]);
-        return;
-      }
-
-      if (event.type !== "message" || event.message?.type !== "text") return;
-      const sourceId = event.source?.userId || event.source?.groupId || event.source?.roomId || "anonymous";
-      await replyMessages(event.replyToken, [buildReply(event.message.text, sourceId)]);
-    }));
-
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ ok: true }));
+
+    Promise.all(events.map(handleLineEvent)).catch((error) => {
+      console.error("LINE event handling failed after webhook ack.", error);
+    });
   } catch (error) {
     console.error(error);
     response.writeHead(500, { "Content-Type": "application/json" });
