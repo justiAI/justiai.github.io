@@ -3,504 +3,3256 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JustiAI</title>
+<title>JustiAI | Procedural Legal Navigation</title>
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
-body { background: #f7f8fb; color: #1f2937; line-height: 1.7; }
-a { text-decoration: none; color: inherit; }
+:root {
+  --ink: #172033;
+  --muted: #5f6d7e;
+  --soft: #f7f8fb;
+  --panel: #ffffff;
+  --line: #d9e2ec;
+  --navy: #134d9e;
+  --navy-dark: #0c214a;
+  --green: #1D9E75;
+  --green-soft: #E1F5EE;
+  --amber: #f7bf25;
+  --amber-dark: #854F0B;
+  --amber-soft: #FAEEDA;
+  --red: #b43c3c;
+  --red-soft: #fde7e7;
+  --blue-soft: #bddbf4;
+  --shadow: 0 18px 50px rgba(22, 37, 58, 0.12);
+}
 
-/* ── Header ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: Inter, "Segoe UI", "Noto Sans TC", system-ui, -apple-system, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #f7f8fb;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 300;
+  background: #fff;
+  color: var(--navy);
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
 header {
-  position: sticky; top: 0; z-index: 100;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: rgba(19, 77, 158, 0.97);
-  border-bottom: 0.5px solid #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(12px);
 }
+
 .nav-wrap {
-  max-width: 1100px; margin: 0 auto; height: 80px;
-  padding: 0 5%; display: flex; justify-content: space-between; align-items: center;
-}
-.brand { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.01em; color: #ffffff; }
-.brand span { color: #f7bf25; }
-nav ul { list-style: none; display: flex; gap: 2rem; }
-nav a { 
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff; 
-  position: relative; 
-  padding-bottom: 4px; 
-  transition: color 0.3s ease; 
+  max-width: 1180px;
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-nav a:hover { 
-  color: #f7bf25; 
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
 }
 
-nav a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 0;
-  height: 2px; 
-  background-color: #f7bf25; 
-  transition: width 0.3s ease-in-out; 
+.brand img {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
 }
-nav a:hover::after {
-  width: 100%;
+
+.brand span {
+  color: var(--amber);
+}
+
+nav ul {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+}
+
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+nav a:hover,
+nav a:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--amber);
+  outline: none;
 }
 
 .hamburger {
-  display: none; flex-direction: column; gap: 4px;
-  cursor: pointer; padding: 6px; background: none; border: none;
-}
-.hamburger span { width: 20px; height: 2px; background: #ffffff; border-radius: 1px; display: block; transition: 0.3s; }
-.hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 5px); }
-.hamburger.active span:nth-child(2) { opacity: 0; }
-.hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -5px); }
-
-/* ── Sections ── */
-section { padding: 6rem 5%; }
-.container { max-width: 1100px; margin: 0 auto; }
-
-/* ── Hero ── */
-.hero {
-  padding: 5rem 5% 6rem;
-  background: #bddbf4;
-  border-bottom: 0.5px solid #e5e7eb;
-}
-.hero-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 460px; gap: 4rem; align-items: center;
-}
-.eyebrow {
-  font-size: 0.9rem; letter-spacing: 0.09em; text-transform: uppercase;
-  color: #0a39d5; font-weight: 700; margin-bottom: 1.2rem;
-}
-.hero h1 {
-  font-size: clamp(2rem, 4vw, 3rem); font-weight: 600;
-  line-height: 1.15; letter-spacing: -0.03em;
-  color: #111827; margin-bottom: 1.5rem;
-}
-.hero h1 em { font-style: normal; color: #1D9E75; }
-.hero p { font-size: 1rem; color: #6b7280; max-width: 480px; margin-bottom: 2.5rem; }
-.badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.badge {
-  font-size: 0.9rem; padding: 0.3rem 0.75rem; border-radius: 100px;
-  border: 0.5px solid #d1d5db; color: #0c214a; background: #f9fafb;
+  display: none;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Hero card mock */
-.hero-visual { position: relative; }
-.hero-card {
-  background: #f9fafb; border: 0.5px solid #e5e7eb;
-  border-radius: 20px; padding: 2.5rem;
-}
-.hc-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; color: #454b56; margin-bottom: 1rem; }
-.hc-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 2rem; color: #111827; }
-.progress-row { display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2rem; }
-
-/* 放大步驟圈圈與文字 */
-.pr-item { display: flex; align-items: center; gap: 1rem; }
-.pr-step {
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 600; flex-shrink: 0;
-}
-.pr-step.done { background: #E1F5EE; color: #0F6E56; }
-.pr-step.active { background: #1D9E75; color: #fff; }
-.pr-step.pending { background: #fff; border: 0.5px solid #d1d5db; color: #9ca3af; }
-
-.pr-text { font-size: 1.05rem; color: #6b7280; }
-.pr-text.active { color: #111827; font-weight: 600; }
-
-/* 放大底部提示條 */
-.hc-bar {
-  background: #fff; border: 0.5px solid hsl(220, 97%, 26%);
-  border-radius: 12px; padding: 1.2rem 1.5rem;
-  display: flex; align-items: center; gap: 1rem;
-}
-.hc-bar-icon {
-  width: 50px; height: 50px; border-radius: 10px;
-  background: #E1F5EE; display: flex; align-items: center;
-  justify-content: center; font-size: 18px; flex-shrink: 0;
-}
-.hc-bar-text { font-size: 0.95rem; }
-.hc-bar-text strong { display: block; font-weight: 600; color: #111827; }
-.hc-bar-text span { color: #0d192e; }
-.lang-row { display: flex; gap: 0.4rem; margin-top: 1rem; flex-wrap: wrap; }
-.lang-pill {
-  font-size: 0.85rem; padding: 0.15rem 0.8rem; border-radius: 100px;
-  background: #d8dcf1; border: 0.5px solid #12151b; color: #0e0f11;
+.hamburger span,
+.hamburger::before,
+.hamburger::after {
+  content: "";
+  width: 18px;
+  height: 2px;
+  display: block;
+  background: #ffffff;
+  border-radius: 999px;
+  transition: transform 0.18s ease, opacity 0.18s ease;
 }
 
-/* ── Background section ── */
-.bg-section {
-  background: #f3f4f6;
-  border-top: 0.5px solid #e5e7eb;
-  border-bottom: 0.5px solid #e5e7eb;
+.hamburger {
+  flex-direction: column;
+  gap: 4px;
 }
-.section-label {
-  font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.1em;
-  color: #2834e1; margin-bottom: 0.75rem; font-weight: 700;
+
+.hamburger.active span {
+  opacity: 0;
 }
+
+.hamburger.active::before {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger.active::after {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+main { overflow: hidden; }
+
+.intro-hero {
+  padding: 54px 24px 44px;
+  display: flex;
+  align-items: center;
+  background: var(--blue-soft);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.intro-inner,
+.workspace-inner,
+.section-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.intro-inner {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 52px;
+  align-items: center;
+}
+
+.intro-copy {
+  min-width: 0;
+}
+
+.intro-logo {
+  width: min(300px, 78vw);
+  margin: 18px 0 18px;
+  border-radius: 12px;
+  display: block;
+}
+
+.intro-title {
+  max-width: 760px;
+  font-size: clamp(2.4rem, 6vw, 5.1rem);
+  line-height: 1.02;
+  letter-spacing: 0;
+  color: #111827;
+}
+
+.intro-title span {
+  color: var(--green);
+}
+
+.intro-sub {
+  max-width: 680px;
+  margin-top: 16px;
+  color: #4b5563;
+  font-size: 1.05rem;
+}
+
+.intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 28px;
+}
+
+.start-btn,
+.secondary-btn {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  padding: 0 18px;
+  font-weight: 900;
+}
+
+.start-btn {
+  background: var(--navy);
+  color: #ffffff;
+  border: 1px solid var(--navy);
+  box-shadow: 0 12px 28px rgba(19, 77, 158, 0.22);
+}
+
+.start-btn:hover,
+.start-btn:focus-visible {
+  background: var(--navy-dark);
+  outline: 3px solid rgba(247, 191, 37, 0.45);
+  outline-offset: 2px;
+}
+
+.secondary-btn {
+  background: #ffffff;
+  color: var(--navy-dark);
+  border: 1px solid #d1d5db;
+}
+
+.secondary-btn:hover,
+.secondary-btn:focus-visible {
+  border-color: var(--navy);
+  outline: none;
+}
+
+.intro-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.intro-badge {
+  font-size: 0.9rem;
+  padding: 0.35rem 0.82rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  color: var(--navy-dark);
+  background: #f9fafb;
+  font-weight: 760;
+}
+
+.intro-badge.highlight {
+  border-color: var(--amber);
+  background: #fff8e6;
+}
+
+.intro-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 18px 48px rgba(19, 77, 158, 0.16);
+}
+
+.intro-card-label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #454b56;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.intro-card-title {
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+}
+
+.intro-steps {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.intro-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.intro-step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.86rem;
+  font-weight: 900;
+  background: var(--green-soft);
+  color: #0F6E56;
+}
+
+.intro-step.active .intro-step-num {
+  background: var(--green);
+  color: #ffffff;
+}
+
+.intro-step span:last-child {
+  color: #4b5563;
+  font-weight: 760;
+}
+
+.intro-note {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--navy);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.intro-note-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: var(--green-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  font-weight: 950;
+}
+
+.intro-note strong {
+  display: block;
+  color: #111827;
+  font-size: 0.94rem;
+}
+
+.intro-note span {
+  display: block;
+  color: var(--navy-dark);
+  font-size: 0.84rem;
+}
+
+.intro-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.intro-feature {
+  min-height: 118px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.intro-feature strong {
+  display: block;
+  color: #111827;
+  font-size: 0.9rem;
+}
+
+.intro-feature span {
+  display: block;
+  margin-top: 6px;
+  color: #4b5563;
+  font-size: 0.82rem;
+}
+
+.workspace {
+  min-height: 100vh;
+  padding: 44px 24px 64px;
+  background:
+    linear-gradient(180deg, #f7f8fb 0%, #eef4fb 100%),
+    #f7f8fb;
+}
+
+.workspace-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.product-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.product-kicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--amber);
+}
+
+.workspace-title {
+  margin-top: 8px;
+  max-width: 760px;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  line-height: 1.12;
+  letter-spacing: 0;
+  color: #10243f;
+}
+
+.workspace-title span {
+  color: var(--green);
+}
+
+.workspace-sub {
+  margin-top: 14px;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 1.04rem;
+}
+
+.language-switch {
+  display: inline-flex;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(19, 77, 158, 0.08);
+}
+
+.lang-btn {
+  min-width: 68px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.lang-btn.active {
+  background: var(--navy);
+  color: #fff;
+}
+
+.guardrail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid #c6d9eb;
+  border-left: 5px solid var(--navy);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.guardrail-mark {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--navy);
+  font-weight: 900;
+}
+
+.guardrail strong {
+  display: block;
+  font-size: 0.96rem;
+  color: var(--navy-dark);
+}
+
+.guardrail span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.91rem;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.intake-panel {
+  position: sticky;
+  top: 92px;
+}
+
+.panel-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-title {
+  font-size: 1.05rem;
+  font-weight: 850;
+  color: var(--navy-dark);
+}
+
+.panel-meta {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.form-body,
+.result-body {
+  padding: 20px;
+}
+
+.field-group + .field-group {
+  margin-top: 22px;
+}
+
+.field-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: #23344d;
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.field-label span:last-child {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.choice-button {
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  padding: 11px 12px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.choice-button:hover,
+.choice-button:focus-visible {
+  border-color: #8bb5da;
+  background: #f7fbff;
+  outline: none;
+}
+
+.choice-button.active {
+  border-color: var(--navy);
+  background: #eef6ff;
+}
+
+.choice-dot {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid #9cafc2;
+  background: #fff;
+}
+
+.choice-button.active .choice-dot {
+  border: 5px solid var(--navy);
+}
+
+.choice-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 850;
+  color: #1c2c42;
+}
+
+.choice-help {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.select-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 12px;
+  font-weight: 720;
+}
+
+select:focus-visible,
+.evidence-chip:focus-visible,
+.action-btn:focus-visible {
+  outline: 3px solid rgba(22, 133, 108, 0.25);
+  outline-offset: 2px;
+}
+
+.evidence-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evidence-chip {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: #34465d;
+  padding: 0 13px;
+  font-size: 0.86rem;
+  font-weight: 780;
+}
+
+.evidence-chip.active {
+  border-color: var(--green);
+  background: var(--green-soft);
+  color: #0d5948;
+}
+
+.result-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.route-label {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: #0d5948;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.route-title {
+  margin-top: 10px;
+  font-size: clamp(1.55rem, 3vw, 2.3rem);
+  line-height: 1.13;
+  letter-spacing: 0;
+  color: #10243f;
+}
+
+.route-summary {
+  margin-top: 9px;
+  max-width: 670px;
+  color: var(--muted);
+  font-size: 0.97rem;
+}
+
+.action-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-width: 176px;
+}
+
+.action-btn {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--navy-dark);
+  padding: 0 12px;
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.action-btn.primary {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.metric {
+  min-height: 86px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fbfdff;
+  padding: 12px;
+}
+
+.metric strong {
+  display: block;
+  color: #10243f;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.metric span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 720;
+}
+
+.next-action {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid #f0cf9c;
+  border-left: 5px solid var(--amber);
+  border-radius: 8px;
+  background: var(--amber-soft);
+  color: #4f320b;
+}
+
+.next-action-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--amber);
+  font-weight: 950;
+}
+
+.next-action strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.next-action span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.89rem;
+}
+
+.result-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.module {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.module-header {
+  min-height: 48px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--line);
+  background: #f8fbff;
+  color: #10243f;
+  font-weight: 900;
+}
+
+.timeline {
+  list-style: none;
+  padding: 4px 0;
+}
+
+.timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px 15px;
+}
+
+.timeline li + li {
+  border-top: 1px solid #edf2f7;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-soft);
+  color: var(--navy);
+  font-size: 0.83rem;
+  font-weight: 950;
+}
+
+.step-title {
+  color: #1d2b40;
+  font-weight: 870;
+}
+
+.step-note {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.checklist {
+  list-style: none;
+}
+
+.checklist li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 12px 14px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.checklist li:last-child {
+  border-bottom: 0;
+}
+
+.checklist input {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--green);
+}
+
+.check-title {
+  display: block;
+  color: #1d2b40;
+  font-size: 0.91rem;
+  font-weight: 820;
+}
+
+.check-note {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.tag.ready {
+  background: var(--green-soft);
+  color: #0d5948;
+}
+
+.tag.missing {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.agency-list {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.agency {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.agency a {
+  color: var(--navy);
+  font-weight: 900;
+}
+
+.agency a:hover {
+  text-decoration: underline;
+}
+
+.agency span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.source-note {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.band {
+  padding: 72px 24px;
+  background: #fff;
+}
+
+.band.alt {
+  background: #f6f8fb;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
 .section-heading {
-  font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 600;
-  letter-spacing: -0.025em; margin-bottom: 1rem; color: #111827;
+  max-width: 820px;
+  color: #10243f;
+  font-size: clamp(1.75rem, 3vw, 2.7rem);
+  line-height: 1.14;
+  letter-spacing: 0;
 }
-.section-sub { color: #6b7280; max-width: 620px; font-size: 0.95rem; }
-.section-sub.centered { margin: 0 auto; text-align: center; }
-.heading-centered { text-align: center; }
 
-/* ── Value section ── */
-.value-section { background: #fff; }
-.value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
-.v-card {
-  background: #f9fafb; border: 0.5px solid #e5e7eb;
-  border-radius: 14px; padding: 2rem; transition: border-color 0.2s, background 0.2s;
+.section-sub {
+  max-width: 760px;
+  margin-top: 12px;
+  color: var(--muted);
 }
-.v-card:hover { border-color: #9ca3af; background: #fff; }
-.v-num { font-size: 2rem; font-weight: 600;color: #0c234d; letter-spacing: 0.06em; margin-bottom: 0.5rem; font-family: "Courier New", monospace; }
-.v-accent { width: 80px; height: 2px; background: #f1962d; margin-bottom: 1rem; border-radius: 1px; }
-.v-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: #111827; }
-.v-card p { font-size: 0.875rem; color: #6b7280; }
 
-/* ── SWOT ── */
-.swot-section { background: #f9fafb; border-top: 0.5px solid #e5e7eb; border-bottom: 0.5px solid #e5e7eb; }
+.route-grid,
+.impact-grid,
+.team-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.story-grid,
+.doc-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.route-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.story-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.doc-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.impact-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.route-tile,
+.impact-tile,
+.story-card,
+.doc-card {
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 18px;
+}
+
+.route-tile strong,
+.impact-tile strong,
+.story-card strong,
+.doc-card strong {
+  display: block;
+  color: #10243f;
+  font-size: 1rem;
+}
+
+.route-tile span,
+.impact-tile span,
+.story-card span,
+.doc-card span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.story-card {
+  min-height: 210px;
+}
+
+.story-role {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  color: var(--amber-dark);
+  font-size: 0.74rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.story-card strong {
+  margin-top: 12px;
+  font-size: 1.1rem;
+}
+
+.doc-card {
+  display: grid;
+  align-content: space-between;
+  min-height: 190px;
+}
+
+.doc-link {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 0 13px;
+  border-radius: 7px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.doc-link:hover,
+.doc-link:focus-visible {
+  background: var(--navy-dark);
+  outline: 3px solid rgba(247, 191, 37, 0.36);
+  outline-offset: 2px;
+}
+
+.demo-showcase {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 18px;
+  margin-top: 28px;
+  align-items: start;
+}
+
+.qr-card,
+.architecture-card,
+.screen-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 18px;
+}
+
+.qr-card img {
+  width: 188px;
+  height: 188px;
+  display: block;
+  margin: 18px auto;
+  border: 8px solid #fff;
+  box-shadow: 0 10px 28px rgba(19, 77, 158, 0.12);
+}
+
+.qr-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.qr-actions .doc-link {
+  width: 100%;
+  margin-top: 0;
+}
+
+.qr-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.screen-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.screen-card {
+  min-height: 230px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fc 100%);
+}
+
+.screen-top {
+  height: 26px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.screen-bubble {
+  margin-top: 12px;
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--green-soft);
+  color: #0F6E56;
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.screen-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.screen-line {
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: #40536a;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+}
+
+.architecture-card {
+  margin-top: 14px;
+}
+
+.architecture-flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.arch-node {
+  min-height: 88px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9fafb;
+  padding: 10px;
+  text-align: center;
+}
+
+.arch-node strong {
+  color: var(--navy-dark);
+  font-size: 0.86rem;
+}
+
+.arch-node span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.boundary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+
 .swot-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 1px; background: #e5e7eb;
-  border: 0.5px solid #e5e7eb; border-radius: 14px;
-  overflow: hidden; margin-top: 3rem;
-}
-.sw-item { background: #fff; padding: 2rem; transition: background 0.2s; }
-.sw-item:hover { background: #f9fafb; }
-.sw-tag {
-  font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.1em;
-  font-weight: 700; margin-bottom: 1rem; display: inline-block;
-  padding: 0.25rem 0.9rem; border-radius: 100px;
-}
-.sw-s .sw-tag { background: #E1F5EE; color: #0F6E56; }
-.sw-w .sw-tag { background: #FAEEDA; color: #854F0B; }
-.sw-o .sw-tag { background: #E6F1FB; color: #185FA5; }
-.sw-t .sw-tag { background: #FCEBEB; color: #A32D2D; }
-.sw-item h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; color: #111827; }
-.sw-item ul { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
-.sw-item li { 
-  font-size: 0.9rem; color: #4b5563; 
-  position: relative; 
-  padding-left: 1.5rem; /* 留出放圓點的空間 */
-  line-height: 1.5;
-}
-.sw-item li::before { 
-  content: ""; 
-  position: absolute; 
-  left: 0; 
-  top: 0.45rem; 
-  width: 6px; 
-  height: 6px; 
-  border-radius: 50%; 
-}
-.sw-s li::before { background-color: #0F6E56; box-shadow: 0 0 0 3px #E1F5EE; }
-.sw-w li::before { background-color: #854F0B; box-shadow: 0 0 0 3px #FAEEDA; }
-.sw-o li::before { background-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
-.sw-t li::before { background-color: #A32D2D; box-shadow: 0 0 0 3px #FCEBEB; }
-
-/* ── Team ── */
-.team-section { background: #fff; }
-.team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
-.t-card {
-  background: #fff; 
-  border: 0.5px solid #e5e7eb;
-  border-radius: 14px; 
-  overflow: hidden; 
-  /* ✨ 新增漸變動畫時間 */
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  height: 500px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--line);
 }
 
-/* ✨ 新增滑鼠移入時的漂浮與陰影效果 */
-.t-card:hover { 
-  border-color: #e5e7eb; 
-  transform: translateY(-8px); /* 向上浮動 8px */
-  box-shadow: 0 12px 24px rgba(0,0,0,0.1); /* 產生立體柔和陰影 */
+.swot-item {
+  min-height: 230px;
+  background: #fff;
+  padding: 22px;
 }
-.t-img { width: 100%; height: 70%; object-fit: cover; display: block; }
-.t-img-placeholder {
-  width: 100%; height: 90px; background: #f3f4f6;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 3rem; color: #d1d5db;
-}
-.t-info { padding: 1.25rem; }
-.t-id { font-size: 0.68rem; color: #9ca3af; font-family: "Courier New", monospace; margin-bottom: 0.35rem; }
-.t-name { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.3rem; color: #111827; }
-.t-role { font-size: 1rem; color: #1D9E75;margin-bottom: 0; }
 
-/* ── Footer ── */
+.swot-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.swot-s .swot-tag { background: var(--green-soft); color: #0F6E56; }
+.swot-w .swot-tag { background: var(--amber-soft); color: var(--amber-dark); }
+.swot-o .swot-tag { background: #E6F1FB; color: #185FA5; }
+.swot-t .swot-tag { background: var(--red-soft); color: #A32D2D; }
+
+.swot-item h3 {
+  margin-top: 14px;
+  color: #111827;
+  font-size: 1rem;
+}
+
+.swot-item ul {
+  margin-top: 12px;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.swot-item li {
+  position: relative;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.swot-item li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.boundary-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.boundary-box.denied {
+  border-color: #f1bbbb;
+}
+
+.boundary-title {
+  padding: 14px 16px;
+  color: #10243f;
+  font-weight: 950;
+  border-bottom: 1px solid var(--line);
+  background: #f8fbff;
+}
+
+.boundary-box.denied .boundary-title {
+  background: var(--red-soft);
+  color: #7a2020;
+}
+
+.boundary-box ul {
+  list-style: none;
+  padding: 8px 0;
+}
+
+.boundary-box li {
+  padding: 10px 16px;
+  color: #40536a;
+  font-size: 0.92rem;
+}
+
+.boundary-box li + li {
+  border-top: 1px solid #edf2f7;
+}
+
+.canvas-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.canvas-cell {
+  min-height: 180px;
+  background: #fff;
+  padding: 16px;
+}
+
+.canvas-cell.wide {
+  grid-column: span 2;
+}
+
+.canvas-cell strong {
+  display: block;
+  color: var(--navy-dark);
+  font-size: 0.9rem;
+}
+
+.canvas-cell span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.team-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.team-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.team-card img {
+  width: 100%;
+  height: 310px;
+  object-fit: cover;
+  display: block;
+  background: #eef2f6;
+}
+
+.team-info {
+  min-height: 128px;
+  padding: 16px;
+}
+
+.team-info strong {
+  display: block;
+  color: #10243f;
+  font-size: 1rem;
+}
+
+.team-info span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 footer {
-  background: #dbe7f7; border-top: 0.5px solid #e5e7eb;
-  padding: 2.5rem 5%; text-align: center;
+  padding: 30px 24px;
+  background: #10243f;
+  color: #dbe7f2;
+  text-align: center;
 }
-.footer-brand { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: #111827; }
-.footer-brand span { color: #1D9E75; }
-footer p { font-size: 1rem; color: #08224f; }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .hamburger { display: flex;margin-left: auto; }
-  nav ul {
-    display: none; position: absolute; top: 80px; left: 0; right: 0;
-    background: rgba(46, 121, 226, 0.98); 
-    border-bottom: 0.5px solid #133a70;
-    flex-direction: column; padding: 0.5rem 5%;
-  }
-  nav ul.open { display: flex; }
-  nav a { 
-    padding: 0.1.5rem 0; display: block; 
-    border-bottom: 0.5px solid rgba(255,255,255,0.1); 
-    font-size: 1.1rem; 
-    color: #ffffff; 
-  }
-  /* ✨ 手機版 hover 的顏色 */
-  nav a:hover { color: #f7bf25; } 
-  nav li:last-child a { border-bottom: none; }
-  .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
-  .hero { padding: 3rem 5% 4rem;}
-  .value-grid { grid-template-columns: 1fr; }
-  .team-grid { grid-template-columns: repeat(2, 1fr); }
-  .swot-grid { grid-template-columns: 1fr; }
+footer strong {
+  color: #fff;
 }
-@media (max-width: 540px) {
-  .team-grid { grid-template-columns: 1fr; }
-  section { padding: 4rem 4%; }
+
+@media (max-width: 1040px) {
+  .intro-inner,
+  .app-grid,
+  .result-columns,
+  .boundary-grid,
+  .swot-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .intro-card {
+    max-width: 620px;
+  }
+
+  .intake-panel {
+    position: static;
+  }
+
+  .route-grid,
+  .impact-grid,
+  .intro-feature-grid,
+  .story-grid,
+  .doc-grid,
+  .demo-showcase,
+  .canvas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .screen-grid,
+  .architecture-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-cell.wide {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .nav-wrap {
+    min-height: 64px;
+  }
+
+  .hamburger {
+    display: inline-flex;
+  }
+
+  nav ul {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    padding: 8px 24px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(19, 77, 158, 0.98);
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  nav ul.open {
+    display: flex;
+  }
+
+  nav a {
+    justify-content: flex-start;
+    min-height: 46px;
+  }
+
+  .workspace,
+  .intro-hero,
+  .band {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .intro-inner,
+  .workspace-header,
+  .result-hero,
+  .select-row,
+  .status-strip,
+  .route-grid,
+  .impact-grid,
+  .intro-feature-grid,
+  .story-grid,
+  .doc-grid,
+  .demo-showcase,
+  .team-grid,
+  .canvas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .language-switch,
+  .action-stack {
+    width: 100%;
+  }
+
+  .lang-btn,
+  .action-btn {
+    width: 100%;
+  }
+
+  .panel-header,
+  .form-body,
+  .result-body {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .workspace-title {
+    font-size: clamp(1.85rem, 9vw, 2.45rem);
+  }
+
+  .intro-title {
+    font-size: clamp(2.15rem, 12vw, 3.6rem);
+  }
+
+  .intro-actions {
+    align-items: stretch;
+  }
+
+  .start-btn,
+  .secondary-btn {
+    width: 100%;
+  }
+
+  .team-card img {
+    height: 260px;
+  }
+}
+
+@media print {
+  header,
+  .intake-panel,
+  .language-switch,
+  .action-stack,
+  .band,
+  footer {
+    display: none !important;
+  }
+
+  body,
+  .workspace {
+    background: #fff;
+  }
+
+  .workspace {
+    padding: 0;
+  }
+
+  .app-grid {
+    display: block;
+  }
+
+  .panel {
+    box-shadow: none;
+    border: 0;
+  }
 }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#demo" data-i18n="skip">Skip to demo</a>
 
 <header>
   <div class="nav-wrap">
-    <div class="brand">Justi<span>AI</span></div>
-    <button class="hamburger" id="hbg" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
-    <nav>
+    <a class="brand" href="#intro" aria-label="JustiAI">
+      <img src="justiai.png" alt="">
+      <strong>Justi<span>AI</span></strong>
+    </a>
+    <button class="hamburger" id="menuButton" aria-label="Toggle menu" aria-expanded="false"><span></span></button>
+    <nav aria-label="Primary navigation">
       <ul id="navLinks">
-        <li><a href="#about">About</a></li>
-        <li><a href="#background">Background</a></li>
-        <li><a href="#value">Core Value</a></li>
-        <li><a href="#swot">SWOT</a></li>
-        <li><a href="#team">Team</a></li>
+        <li><a href="#intro" data-i18n="navIntro">About</a></li>
+        <li><a href="#background" data-i18n="navBackground">Background</a></li>
+        <li><a href="#users" data-i18n="navUsers">Users</a></li>
+        <li><a href="#value" data-i18n="navValue">Core Value</a></li>
+        <li><a href="#swot" data-i18n="navSwot">SWOT</a></li>
+        <li><a href="#reports" data-i18n="navReports">Reports</a></li>
+        <li><a href="#demo" data-i18n="navDemo">Demo</a></li>
+        <li><a href="#team" data-i18n="navTeam">Team</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
-<!-- Hero -->
-<section class="hero" id="about">
-  <div class="hero-inner">
-    <div>
-      <div class="eyebrow">Legal Navigation Platform</div>
-      <img src="justiai.png" alt="JustiAI Logo" style="max-width: 300px; margin-bottom: 1.5rem; border-radius: 12px; ">
-      <h1>From legal advice<br>to <em>legal navigation</em></h1>
-      <p>JustiAI helps vulnerable users, migrant workers, and first-time legal system users understand what to do next — without replacing legal professionals.</p>
-      <div class="badges">
-        <span class="badge">Procedural Guidance</span>
-        <span class="badge">Low Legal Risk</span>
-        <span class="badge">Multilingual Support</span>
-        <span class="badge">Access to Justice</span>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="hero-card">
-        <div class="hc-label">Active case</div>
-        <div class="hc-title">Wage dispute — next steps</div>
-        <div class="progress-row">
-          <div class="pr-item">
-            <div class="pr-step done">✓</div>
-            <div class="pr-text">File complaint with labor bureau</div>
-          </div>
-          <div class="pr-item">
-            <div class="pr-step active">2</div>
-            <div class="pr-text active">Prepare supporting documents</div>
-          </div>
-          <div class="pr-item">
-            <div class="pr-step pending">3</div>
-            <div class="pr-text">Attend mediation session</div>
-          </div>
-          <div class="pr-item">
-            <div class="pr-step pending">4</div>
-            <div class="pr-text">Await outcome notification</div>
+<main id="main">
+  <section class="intro-hero" id="intro">
+    <div class="intro-inner">
+      <div class="intro-copy">
+        <div class="product-kicker" data-i18n="kicker">Procedural legal navigation</div>
+        <img class="intro-logo" src="justiai.png" alt="JustiAI Logo">
+        <h1 class="intro-title" data-i18n="heroTitle">From legal advice to <span>legal navigation</span>.</h1>
+        <p class="intro-sub" data-i18n="heroSub">JustiAI helps vulnerable users, workers, and first-time legal system users understand what to do next without replacing legal professionals.</p>
+        <div class="intro-actions">
+          <a class="start-btn" href="demo.html" data-i18n="startButton">Try Demo</a>
+          <a class="secondary-btn" href="#background" data-i18n="learnButton">See how it works</a>
+          <div class="language-switch" aria-label="Language">
+            <button type="button" class="lang-btn" data-lang-option="en">EN</button>
+            <button type="button" class="lang-btn" data-lang-option="zh">中文</button>
           </div>
         </div>
-        <div class="hc-bar">
-          <div class="hc-bar-icon">⚖️</div>
-          <div class="hc-bar-text">
-            <strong>Step 2 of 4</strong>
-            <span>Document checklist ready</span>
-          </div>
+        <div class="intro-badges" aria-label="JustiAI values">
+          <span class="intro-badge" data-i18n="badgeProcedure">Procedural Guidance</span>
+          <span class="intro-badge highlight" data-i18n="badgeSafe">Navigation, not advice</span>
+          <span class="intro-badge" data-i18n="badgeBilingual">中文 / English</span>
+          <span class="intro-badge" data-i18n="badgeAccess">Access to Justice</span>
         </div>
-        <div class="lang-row">
-          <span class="lang-pill">English</span>
-          <span class="lang-pill">中文</span>
-          <span class="lang-pill">Bahasa</span>
-          <span class="lang-pill">ภาษาไทย</span>
+        <div class="intro-feature-grid">
+          <div class="intro-feature">
+            <strong data-i18n="featureOneTitle">Choose a situation</strong>
+            <span data-i18n="featureOneText">Start with wage, dismissal, overtime, or work-injury issues.</span>
+          </div>
+          <div class="intro-feature">
+            <strong data-i18n="featureTwoTitle">Get a route</strong>
+            <span data-i18n="featureTwoText">See steps, documents, deadlines to verify, and agencies.</span>
+          </div>
+          <div class="intro-feature">
+            <strong data-i18n="featureThreeTitle">Stay protected</strong>
+            <span data-i18n="featureThreeText">Clear boundaries keep the system away from legal advice.</span>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- Background -->
-<section class="bg-section" id="background">
-  <div class="container">
-    <div class="heading-centered">
-      <div class="section-label">Product background</div>
-      <h2 class="section-heading">Access to justice is a systems problem</h2>
-      <p class="section-sub centered">Access to justice remains a fundamental challenge in Taiwan, particularly for migrant workers and low-income individuals. Traditional legal-tech focuses on advice — but users need procedural clarity. JustiAI bridges this gap by providing step-by-step navigation through existing legal institutions, reducing barriers without regulatory risks.</p>
-    </div>
-  </div>
-</section>
-
-<!-- Core Value -->
-<section class="value-section" id="value">
-  <div class="container">
-    <div class="section-label">Core value</div>
-    <h2 class="section-heading">Simplifying what feels<br>impossibly complex</h2>
-    <p class="section-sub">JustiAI focuses on simplifying legal procedures into clear, structured, and user-friendly steps.</p>
-    <div class="value-grid">
-      <div class="v-card">
-        <div class="v-num">01</div>
-        <div class="v-accent"></div>
-        <h2>Step-by-step guidance</h2>
-        <p>Breaks down complex legal procedures into simple actions, documents, and next steps anyone can follow.</p>
-      </div>
-      <div class="v-card">
-        <div class="v-num">02</div>
-        <div class="v-accent"></div>
-        <h2>Navigation, not advice</h2>
-        <p>Provides procedural direction while avoiding legal advice, keeping compliance risk minimal for both users and platform.</p>
-      </div>
-      <div class="v-card">
-        <div class="v-num">03</div>
-        <div class="v-accent"></div>
-        <h2>Inclusive design</h2>
-        <p>Supports multilingual access and user-friendly experiences designed specifically for underserved communities.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SWOT -->
-<section class="swot-section" id="swot">
-  <div class="container">
-    <div class="section-label">SWOT analysis</div>
-    <h2 class="section-heading">Strategic positioning</h2>
-    <p class="section-sub">A concise overview of JustiAI's competitive landscape.</p>
-    <div class="swot-grid">
-      <div class="sw-item sw-s">
-        <span class="sw-tag">Strengths</span>
-        <h3>What we do well</h3>
-        <ul>
-          <li>Clear focus on procedural navigation</li>
-          <li>Lower legal risk than advisory systems</li>
-          <li>Scalable across legal domains</li>
-        </ul>
-      </div>
-      <div class="sw-item sw-w">
-        <span class="sw-tag">Weaknesses</span>
-        <h3>Where we need work</h3>
-        <ul>
-          <li>Frequent procedural updates required</li>
-          <li>Trust building with vulnerable users</li>
-          <li>Limited early monetization</li>
-        </ul>
-      </div>
-      <div class="sw-item sw-o">
-        <span class="sw-tag">Opportunities</span>
-        <h3>Paths to grow</h3>
-        <ul>
-          <li>Growing migrant worker population</li>
-          <li>NGO and institutional partnerships</li>
-          <li>Regional expansion potential</li>
-        </ul>
-      </div>
-      <div class="sw-item sw-t">
-        <span class="sw-tag">Threats</span>
-        <h3>Risks to watch</h3>
-        <ul>
-          <li>Regulatory scrutiny</li>
-          <li>Competition from big tech</li>
-          <li>User misinterpretation risks</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Team -->
-<section class="team-section" id="team">
-  <div class="container">
-    <div class="section-label">Team Members</div>
-    <div class="team-grid">
-      <div class="t-card">
-        <img src="Agie Photo.jpg" alt="Angella Burton Mwakisu" class="t-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div class="t-img-placeholder" style="display:none;">👤</div>
-        <div class="t-info">
-          <div class="t-name">Angella Burton Mwakisu (Angie)</div>
-          <div class="t-role">International Program in Urban Governance</div>
+      <div class="intro-card" aria-label="JustiAI product preview">
+        <div class="intro-card-label" data-i18n="previewLabel">Product preview</div>
+        <div class="intro-card-title" data-i18n="previewTitle">Wage dispute — next steps</div>
+        <div class="intro-steps">
+          <div class="intro-step">
+            <span class="intro-step-num">1</span>
+            <span data-i18n="previewStepOne">Identify the correct labor route</span>
+          </div>
+          <div class="intro-step active">
+            <span class="intro-step-num">2</span>
+            <span data-i18n="previewStepTwo">Prepare supporting documents</span>
+          </div>
+          <div class="intro-step">
+            <span class="intro-step-num">3</span>
+            <span data-i18n="previewStepThree">Contact the right institution</span>
+          </div>
+          <div class="intro-step">
+            <span class="intro-step-num">4</span>
+            <span data-i18n="previewStepFour">Keep official records</span>
+          </div>
         </div>
-      </div>
-      <div class="t-card">
-        <img src="hengning.jpg" alt="Heng-Ning Tseng" class="t-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div class="t-img-placeholder" style="display:none;">👤</div>
-        <div class="t-info">
-          <div class="t-name">Heng-Ning Tseng (Maggie)</div>
-          <div class="t-role">Graduate Institute of Information Management</div>
-        </div>
-      </div>
-      <div class="t-card">
-        <img src="yuhsin.jpg" alt="Yu-Hsin Lin" class="t-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div class="t-img-placeholder" style="display:none;">👤</div>
-        <div class="t-info">
-          <div class="t-name">Yu-Hsin Lin (Fiona)</div>
-          <div class="t-role">Graduate Institute of Information Management</div>
+        <div class="intro-note">
+          <div class="intro-note-icon">!</div>
+          <div>
+            <strong data-i18n="guardrailTitle">Navigation-only mode</strong>
+            <span data-i18n="guardrailText">JustiAI organizes public procedural information. It does not decide rights, predict outcomes, or replace a lawyer.</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <section class="band" id="background">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="backgroundTitle">Access to justice is a systems problem</h2>
+      <p class="section-sub" data-i18n="backgroundSub">Legal rights alone are not enough when procedures are difficult to understand. In Taiwan, public institutions and legal aid exist, but procedural complexity, language barriers, and fragmented information still prevent vulnerable users from taking the next step.</p>
+      <div class="route-grid">
+        <div class="route-tile">
+          <strong data-i18n="backgroundOneTitle">Procedural complexity</strong>
+          <span data-i18n="backgroundOneText">Formal processes can be hard to navigate for people with limited legal literacy.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="backgroundTwoTitle">Institutional barriers</strong>
+          <span data-i18n="backgroundTwoText">Support systems exist, but users often do not know where to start or what to prepare.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="backgroundThreeTitle">Need for navigation</strong>
+          <span data-i18n="backgroundThreeText">Users need action-oriented procedural guidance, not abstract legal analysis.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="backgroundFourTitle">Safer legal-tech</strong>
+          <span data-i18n="backgroundFourText">JustiAI reduces friction while avoiding automated legal advice.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="users">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="usersTitle">User scenarios</h2>
+      <p class="section-sub" data-i18n="usersSub">Inspired by the reference projects' user-story sections, JustiAI frames the product around concrete people and procedures.</p>
+      <div class="story-grid">
+        <article class="story-card">
+          <span class="story-role" data-i18n="storyOneRole">Migrant worker</span>
+          <strong data-i18n="storyOneTitle">Ana needs unpaid wage help</strong>
+          <span data-i18n="storyOneText">Ana is unsure whether to call a hotline, contact the employer, or apply for mediation. JustiAI helps her organize wage records and identify the labor authority route.</span>
+        </article>
+        <article class="story-card">
+          <span class="story-role" data-i18n="storyTwoRole">Part-time worker</span>
+          <strong data-i18n="storyTwoTitle">Ming faces overtime confusion</strong>
+          <span data-i18n="storyTwoText">Ming has screenshots of shifts and salary slips but does not know what counts as useful evidence. JustiAI turns the situation into a checklist and next-step plan.</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="value">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="valueTitle">Simplifying what feels impossibly complex</h2>
+      <p class="section-sub" data-i18n="valueSub">JustiAI focuses on simplifying legal procedures into clear, structured, and user-friendly steps.</p>
+      <div class="route-grid">
+        <div class="route-tile">
+          <strong data-i18n="valueOneTitle">Step-by-step guidance</strong>
+          <span data-i18n="valueOneText">Breaks procedures into simple actions, required documents, and next steps.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="valueTwoTitle">Navigation, not advice</strong>
+          <span data-i18n="valueTwoText">Provides procedural direction while avoiding legal interpretation and outcome prediction.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="valueThreeTitle">Inclusive design</strong>
+          <span data-i18n="valueThreeText">Supports Chinese and English experiences for first-time users and foreign residents.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="valueFourTitle">Institutional linkage</strong>
+          <span data-i18n="valueFourText">Connects users with labor authorities, hotlines, and legal aid resources.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="swot">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="swotTitle">Strategic positioning</h2>
+      <p class="section-sub" data-i18n="swotSub">JustiAI shifts legal-tech from "knowing the law" to "navigating the system."</p>
+      <div class="swot-grid">
+        <div class="swot-item swot-s">
+          <span class="swot-tag" data-i18n="swotStrengths">Strengths</span>
+          <h3 data-i18n="swotStrengthsTitle">What we do well</h3>
+          <ul>
+            <li data-i18n="swotSOne">Focuses on procedural navigation rather than legal advice.</li>
+            <li data-i18n="swotSTwo">Modular design enables expansion across legal domains.</li>
+            <li data-i18n="swotSThree">Bilingual access supports a broader user group.</li>
+          </ul>
+        </div>
+        <div class="swot-item swot-w">
+          <span class="swot-tag" data-i18n="swotWeaknesses">Weaknesses</span>
+          <h3 data-i18n="swotWeaknessesTitle">Where we need work</h3>
+          <ul>
+            <li data-i18n="swotWOne">Requires continuous updates and validation.</li>
+            <li data-i18n="swotWTwo">Must build trust with vulnerable user groups.</li>
+            <li data-i18n="swotWThree">Limited early monetization potential.</li>
+          </ul>
+        </div>
+        <div class="swot-item swot-o">
+          <span class="swot-tag" data-i18n="swotOpportunities">Opportunities</span>
+          <h3 data-i18n="swotOpportunitiesTitle">Paths to grow</h3>
+          <ul>
+            <li data-i18n="swotOOne">Aligns with Taiwan's digital governance initiatives.</li>
+            <li data-i18n="swotOTwo">Potential partnerships with government bodies and NGOs.</li>
+            <li data-i18n="swotOThree">Few pure procedural navigation tools in legal-tech.</li>
+          </ul>
+        </div>
+        <div class="swot-item swot-t">
+          <span class="swot-tag" data-i18n="swotThreats">Threats</span>
+          <h3 data-i18n="swotThreatsTitle">Risks to watch</h3>
+          <ul>
+            <li data-i18n="swotTOne">Regulatory scrutiny and privacy concerns.</li>
+            <li data-i18n="swotTTwo">Competition from established technology firms.</li>
+            <li data-i18n="swotTThree">Users may misunderstand AI outputs without clear boundaries.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="reports">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="reportsTitle">Project documentation and demo</h2>
+      <div class="doc-grid">
+        <div class="doc-card">
+          <div>
+            <strong data-i18n="reportTwoTitle">System architecture</strong>
+            <span data-i18n="reportTwoText">The prototype uses structured procedural data, bilingual UI text, and rule-based navigation logic.</span>
+          </div>
+          <a class="doc-link" href="#knowledge" data-i18n="reportTwoAction">View knowledge base</a>
+        </div>
+        <div class="doc-card">
+          <div>
+            <strong data-i18n="reportThreeTitle">Live prototype</strong>
+            <span data-i18n="reportThreeText">The legal navigator is the working demo: choose a labor issue and generate a route, checklist, and agency links.</span>
+          </div>
+          <a class="doc-link" href="demo.html" data-i18n="reportThreeAction">Try demo</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="demo">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="demoTitle">Demo entry and system architecture</h2>
+      <p class="section-sub" data-i18n="demoSub">The website now works like the reference projects: it explains the project, then sends users to a chatbot-style demo that can later be replaced by a real LINE bot.</p>
+      <div class="demo-showcase">
+        <div class="qr-card">
+          <strong data-i18n="demoQrTitle">Scan to try the demo</strong>
+          <span data-i18n="demoQrText">The QR code points to the external JustiAI chatbot demo page.</span>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fjustiai.github.io%2Fdemo.html" alt="JustiAI demo QR code" data-i18n-alt="qrAlt">
+          <div class="qr-actions">
+            <a class="doc-link" href="demo.html" data-i18n="demoTryButton">Open web chatbot</a>
+            <a class="doc-link" href="line-bot/README.md" data-i18n="lineBotButton">View LINE bot scaffold</a>
+          </div>
+        </div>
+        <div>
+          <div class="screen-grid" aria-label="Demo screenshots">
+            <div class="screen-card">
+              <div class="screen-top" data-i18n="screenOneTop">Step 1</div>
+              <div class="screen-bubble" data-i18n="screenOneBubble">Choose a labor issue.</div>
+              <div class="screen-list">
+                <div class="screen-line" data-i18n="screenOneLineA">Unpaid wages</div>
+                <div class="screen-line" data-i18n="screenOneLineB">Overtime or working hours</div>
+                <div class="screen-line" data-i18n="screenOneLineC">Work injury</div>
+              </div>
+            </div>
+            <div class="screen-card">
+              <div class="screen-top" data-i18n="screenTwoTop">Step 2</div>
+              <div class="screen-bubble" data-i18n="screenTwoBubble">Get procedural next steps.</div>
+              <div class="screen-list">
+                <div class="screen-line" data-i18n="screenTwoLineA">Create a timeline</div>
+                <div class="screen-line" data-i18n="screenTwoLineB">Collect evidence</div>
+                <div class="screen-line" data-i18n="screenTwoLineC">Contact labor authority</div>
+              </div>
+            </div>
+            <div class="screen-card">
+              <div class="screen-top" data-i18n="screenThreeTop">Step 3</div>
+              <div class="screen-bubble" data-i18n="screenThreeBubble">Use official resources.</div>
+              <div class="screen-list">
+                <div class="screen-line" data-i18n="screenThreeLineA">1955 hotline</div>
+                <div class="screen-line" data-i18n="screenThreeLineB">Local labor bureau</div>
+                <div class="screen-line" data-i18n="screenThreeLineC">Legal Aid Foundation</div>
+              </div>
+            </div>
+          </div>
+          <div class="architecture-card">
+            <strong data-i18n="architectureTitle">System architecture</strong>
+            <div class="architecture-flow">
+              <div class="arch-node">
+                <strong data-i18n="archOneTitle">LINE / Web UI</strong>
+                <span data-i18n="archOneText">User messages</span>
+              </div>
+              <div class="arch-node">
+                <strong data-i18n="archTwoTitle">Webhook backend</strong>
+                <span data-i18n="archTwoText">Receives events</span>
+              </div>
+              <div class="arch-node">
+                <strong data-i18n="archThreeTitle">Procedure engine</strong>
+                <span data-i18n="archThreeText">Rule-based route</span>
+              </div>
+              <div class="arch-node">
+                <strong data-i18n="archFourTitle">Knowledge base</strong>
+                <span data-i18n="archFourText">Steps and agencies</span>
+              </div>
+              <div class="arch-node">
+                <strong data-i18n="archFiveTitle">Safe response</strong>
+                <span data-i18n="archFiveText">Navigation only</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="team">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="teamTitle">Team 6</h2>
+      <p class="section-sub" data-i18n="teamSub">114-2 Software Engineering final project implementation based on the JustiAI midterm proposal.</p>
+      <div class="team-grid">
+        <article class="team-card">
+          <img src="Agie Photo.jpg" alt="Angella Burton Mwakisu">
+          <div class="team-info">
+            <strong>Angella Burton Mwakisu (Angie)</strong>
+            <span>International Program in Urban Governance</span>
+          </div>
+        </article>
+        <article class="team-card">
+          <img src="hengning.jpg" alt="Heng-Ning Tseng">
+          <div class="team-info">
+            <strong>Heng-Ning Tseng (Maggie)</strong>
+            <span>Graduate Institute of Information Management</span>
+          </div>
+        </article>
+        <article class="team-card">
+          <img src="yuhsin.jpg" alt="Yu-Hsin Lin">
+          <div class="team-info">
+            <strong>Yu-Hsin Lin (Fiona)</strong>
+            <span>Graduate Institute of Information Management</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="workspace" id="navigator" hidden>
+    <div class="workspace-inner">
+      <div class="workspace-header">
+        <div>
+          <div class="product-kicker" data-i18n="navigatorKicker">Start here</div>
+          <h1 class="workspace-title" data-i18n="navigatorTitle">Legal navigation workspace</h1>
+          <p class="workspace-sub" data-i18n="navigatorSub">Choose a situation, adjust the context, and JustiAI will organize a procedural route and checklist.</p>
+        </div>
+        <div class="language-switch" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang-option="en">EN</button>
+          <button type="button" class="lang-btn" data-lang-option="zh">中文</button>
+        </div>
+      </div>
+
+      <div class="guardrail" role="note">
+        <div class="guardrail-mark">!</div>
+        <div>
+          <strong data-i18n="guardrailTitle">Navigation-only mode</strong>
+          <span data-i18n="guardrailText">JustiAI organizes public procedural information. It does not decide rights, predict outcomes, or replace a lawyer.</span>
+        </div>
+      </div>
+
+      <div class="app-grid">
+        <aside class="panel intake-panel" aria-label="Case intake">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title" data-i18n="intakeTitle">Case profile</div>
+              <div class="panel-meta" data-i18n="intakeMeta">Labor dispute MVP</div>
+            </div>
+          </div>
+          <div class="form-body">
+            <div class="field-group">
+              <div class="field-label">
+                <span data-i18n="issueLabel">Issue type</span>
+                <span data-i18n="issueHint">Choose one</span>
+              </div>
+              <div class="choice-grid" id="issueChoices"></div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <span data-i18n="caseContext">Case context</span>
+                <span data-i18n="caseContextHint">Route tuning</span>
+              </div>
+              <div class="select-row">
+                <select id="locationSelect" aria-label="Work location"></select>
+                <select id="urgencySelect" aria-label="Urgency"></select>
+              </div>
+              <div class="select-row" style="margin-top: 10px;">
+                <select id="goalSelect" aria-label="User goal"></select>
+                <select id="workerSelect" aria-label="Worker status"></select>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <span data-i18n="evidenceLabel">Evidence available</span>
+                <span id="evidenceCount">0</span>
+              </div>
+              <div class="evidence-grid" id="evidenceChoices"></div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="panel result-panel" aria-live="polite">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title" data-i18n="planTitle">Procedure plan</div>
+              <div class="panel-meta" id="updatedAt"></div>
+            </div>
+          </div>
+          <div class="result-body">
+            <div class="result-hero">
+              <div>
+                <span class="route-label" id="routeLabel"></span>
+                <h2 class="route-title" id="routeTitle"></h2>
+                <p class="route-summary" id="routeSummary"></p>
+              </div>
+              <div class="action-stack">
+                <button type="button" class="action-btn primary" id="copyPlanBtn" data-i18n="copyPlan">Copy plan</button>
+                <button type="button" class="action-btn" id="printPlanBtn" data-i18n="printPlan">Print</button>
+              </div>
+            </div>
+
+            <div class="status-strip" aria-label="Plan status">
+              <div class="metric">
+                <strong id="stepMetric">5</strong>
+                <span data-i18n="stepMetricLabel">procedural steps</span>
+              </div>
+              <div class="metric">
+                <strong id="docMetric">0/0</strong>
+                <span data-i18n="docMetricLabel">documents prepared</span>
+              </div>
+              <div class="metric">
+                <strong id="riskMetric">OK</strong>
+                <span data-i18n="riskMetricLabel">boundary status</span>
+              </div>
+            </div>
+
+            <div class="next-action">
+              <div class="next-action-icon">→</div>
+              <div>
+                <strong id="nextActionTitle"></strong>
+                <span id="nextActionText"></span>
+              </div>
+            </div>
+
+            <div class="result-columns">
+              <div class="module">
+                <div class="module-header" data-i18n="stepsHeader">Step-by-step route</div>
+                <ol class="timeline" id="stepList"></ol>
+              </div>
+
+              <div class="module">
+                <div class="module-header" data-i18n="docsHeader">Document checklist</div>
+                <ul class="checklist" id="docList"></ul>
+              </div>
+            </div>
+
+            <div class="module" style="margin-top: 18px;">
+              <div class="module-header" data-i18n="agenciesHeader">Institutional links</div>
+              <div class="agency-list" id="agencyList"></div>
+              <div class="source-note" data-i18n="sourceNote">Verify deadlines and submission details with official agencies before filing.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="knowledge">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="knowledgeTitle">Procedural knowledge base</h2>
+      <p class="section-sub" data-i18n="knowledgeSub">The first JustiAI domain covers common labor routes in Taiwan: mediation, labor inspection, legal aid, and migrant worker support.</p>
+      <div class="route-grid">
+        <div class="route-tile">
+          <strong data-i18n="kbMediationTitle">Labor mediation</strong>
+          <span data-i18n="kbMediationText">Organize facts, submit an application, attend mediation, and keep the written record.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="kbInspectionTitle">Complaint or inspection</strong>
+          <span data-i18n="kbInspectionText">Use when wages, overtime, working time, or safety issues require labor authority review.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="kbAidTitle">Legal aid referral</strong>
+          <span data-i18n="kbAidText">Escalate when settlement fails, documents are complex, or court action may be needed.</span>
+        </div>
+        <div class="route-tile">
+          <strong data-i18n="kbMigrantTitle">Migrant worker support</strong>
+          <span data-i18n="kbMigrantText">Use worker hotlines and public agencies when language, employer control, or housing concerns affect access.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="boundaries">
+    <div class="section-inner">
+      <h2 class="section-heading" data-i18n="boundariesTitle">Legal-safety boundaries</h2>
+      <p class="section-sub" data-i18n="boundariesSub">JustiAI is designed around procedural navigation. The product avoids advisory claims that could mislead vulnerable users or create legal-practice risk.</p>
+      <div class="boundary-grid">
+        <div class="boundary-box">
+          <div class="boundary-title" data-i18n="allowedTitle">Allowed output</div>
+          <ul>
+            <li data-i18n="allowedOne">Explain public procedures and required documents.</li>
+            <li data-i18n="allowedTwo">Suggest institutions that can receive complaints or provide help.</li>
+            <li data-i18n="allowedThree">Turn a user situation into a neutral preparation checklist.</li>
+            <li data-i18n="allowedFour">Display official links and verification reminders.</li>
+          </ul>
+        </div>
+        <div class="boundary-box denied">
+          <div class="boundary-title" data-i18n="blockedTitle">Blocked output</div>
+          <ul>
+            <li data-i18n="blockedOne">No legal opinion about who is right or wrong.</li>
+            <li data-i18n="blockedTwo">No prediction of settlement amount or court outcome.</li>
+            <li data-i18n="blockedThree">No instruction to ignore official notices or deadlines.</li>
+            <li data-i18n="blockedFour">No replacement for lawyers, NGOs, courts, or labor authorities.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
 
 <footer>
-  <div class="footer-brand">Justi<span>AI</span></div>
-  <p>&copy; 2026 JustiAI Project Team &nbsp;·&nbsp; Empowering access to justice through procedural clarity.</p>
+  <p><strong>JustiAI</strong> · <span data-i18n="footerText">Empowering access to justice through procedural clarity.</span></p>
 </footer>
 
 <script>
-  const hbg = document.getElementById('hbg');
-  const navLinks = document.getElementById('navLinks');
+const copy = {
+  en: {
+    skip: "Skip to demo",
+    navIntro: "About",
+    navBackground: "Background",
+    navUsers: "Users",
+    navValue: "Core Value",
+    navSwot: "SWOT",
+    navReports: "Reports",
+    navDemo: "Demo",
+    navNavigator: "Start",
+    navKnowledge: "Knowledge Base",
+    navBoundaries: "Boundaries",
+    navImpact: "Impact",
+    navTeam: "Team",
+    kicker: "Procedural legal navigation",
+    heroTitle: "From legal advice to <span>legal navigation</span>.",
+    heroSub: "JustiAI helps vulnerable users, workers, and first-time legal system users understand what to do next without replacing legal professionals.",
+    startButton: "Try Demo",
+    learnButton: "See how it works",
+    badgeProcedure: "Procedural Guidance",
+    badgeSafe: "Navigation, not advice",
+    badgeBilingual: "中文 / English",
+    badgeAccess: "Access to Justice",
+    featureOneTitle: "Choose a situation",
+    featureOneText: "Start with wage, dismissal, overtime, or work-injury issues.",
+    featureTwoTitle: "Get a route",
+    featureTwoText: "See steps, documents, deadlines to verify, and agencies.",
+    featureThreeTitle: "Stay protected",
+    featureThreeText: "Clear boundaries keep the system away from legal advice.",
+    backgroundTitle: "Access to justice is a systems problem",
+    backgroundSub: "Legal rights alone are not enough when procedures are difficult to understand. In Taiwan, public institutions and legal aid exist, but procedural complexity, language barriers, and fragmented information still prevent vulnerable users from taking the next step.",
+    backgroundOneTitle: "Procedural complexity",
+    backgroundOneText: "Formal processes can be hard to navigate for people with limited legal literacy.",
+    backgroundTwoTitle: "Institutional barriers",
+    backgroundTwoText: "Support systems exist, but users often do not know where to start or what to prepare.",
+    backgroundThreeTitle: "Need for navigation",
+    backgroundThreeText: "Users need action-oriented procedural guidance, not abstract legal analysis.",
+    backgroundFourTitle: "Safer legal-tech",
+    backgroundFourText: "JustiAI reduces friction while avoiding automated legal advice.",
+    usersTitle: "User scenarios",
+    usersSub: "Inspired by the reference projects' user-story sections, JustiAI frames the product around concrete people and procedures.",
+    storyOneRole: "Migrant worker",
+    storyOneTitle: "Ana needs unpaid wage help",
+    storyOneText: "Ana is unsure whether to call a hotline, contact the employer, or apply for mediation. JustiAI helps her organize wage records and identify the labor authority route.",
+    storyTwoRole: "Part-time worker",
+    storyTwoTitle: "Ming faces overtime confusion",
+    storyTwoText: "Ming has screenshots of shifts and salary slips but does not know what counts as useful evidence. JustiAI turns the situation into a checklist and next-step plan.",
+    valueTitle: "Simplifying what feels impossibly complex",
+    valueSub: "JustiAI focuses on simplifying legal procedures into clear, structured, and user-friendly steps.",
+    valueOneTitle: "Step-by-step guidance",
+    valueOneText: "Breaks procedures into simple actions, required documents, and next steps.",
+    valueTwoTitle: "Navigation, not advice",
+    valueTwoText: "Provides procedural direction while avoiding legal interpretation and outcome prediction.",
+    valueThreeTitle: "Inclusive design",
+    valueThreeText: "Supports Chinese and English experiences for first-time users and foreign residents.",
+    valueFourTitle: "Institutional linkage",
+    valueFourText: "Connects users with labor authorities, hotlines, and legal aid resources.",
+    swotTitle: "Strategic positioning",
+    swotSub: "JustiAI shifts legal-tech from \"knowing the law\" to \"navigating the system.\"",
+    swotStrengths: "Strengths",
+    swotStrengthsTitle: "What we do well",
+    swotSOne: "Focuses on procedural navigation rather than legal advice.",
+    swotSTwo: "Modular design enables expansion across legal domains.",
+    swotSThree: "Bilingual access supports a broader user group.",
+    swotWeaknesses: "Weaknesses",
+    swotWeaknessesTitle: "Where we need work",
+    swotWOne: "Requires continuous updates and validation.",
+    swotWTwo: "Must build trust with vulnerable user groups.",
+    swotWThree: "Limited early monetization potential.",
+    swotOpportunities: "Opportunities",
+    swotOpportunitiesTitle: "Paths to grow",
+    swotOOne: "Aligns with Taiwan's digital governance initiatives.",
+    swotOTwo: "Potential partnerships with government bodies and NGOs.",
+    swotOThree: "Few pure procedural navigation tools in legal-tech.",
+    swotThreats: "Threats",
+    swotThreatsTitle: "Risks to watch",
+    swotTOne: "Regulatory scrutiny and privacy concerns.",
+    swotTTwo: "Competition from established technology firms.",
+    swotTThree: "Users may misunderstand AI outputs without clear boundaries.",
+    reportsTitle: "Project documentation",
+    reportOneText: "The project is based on procedural barriers, access to justice, and safer legal-tech design.",
+    reportOneAction: "View background",
+    reportTwoTitle: "System architecture",
+    reportTwoText: "The prototype uses structured procedural data, bilingual UI text, and rule-based navigation logic.",
+    reportTwoAction: "View knowledge base",
+    reportThreeTitle: "Live prototype",
+    reportThreeText: "The web chatbot is the working demo and can later be replaced by the deployed LINE bot.",
+    reportThreeAction: "Try demo",
+    demoTitle: "Demo entry and system architecture",
+    demoSub: "The website now works like the reference projects: it explains the project, then sends users to a chatbot-style demo that can later be replaced by a real LINE bot.",
+    demoQrTitle: "Scan to try the demo",
+    demoQrText: "The QR code points to the external JustiAI chatbot demo page.",
+    qrAlt: "JustiAI demo QR code",
+    demoTryButton: "Open web chatbot",
+    lineBotButton: "View LINE bot scaffold",
+    screenOneTop: "Step 1",
+    screenOneBubble: "Choose a labor issue.",
+    screenOneLineA: "Unpaid wages",
+    screenOneLineB: "Overtime or working hours",
+    screenOneLineC: "Work injury",
+    screenTwoTop: "Step 2",
+    screenTwoBubble: "Get procedural next steps.",
+    screenTwoLineA: "Create a timeline",
+    screenTwoLineB: "Collect evidence",
+    screenTwoLineC: "Contact labor authority",
+    screenThreeTop: "Step 3",
+    screenThreeBubble: "Use official resources.",
+    screenThreeLineA: "1955 hotline",
+    screenThreeLineB: "Local labor bureau",
+    screenThreeLineC: "Legal Aid Foundation",
+    architectureTitle: "System architecture",
+    archOneTitle: "LINE / Web UI",
+    archOneText: "User messages",
+    archTwoTitle: "Webhook backend",
+    archTwoText: "Receives events",
+    archThreeTitle: "Procedure engine",
+    archThreeText: "Rule-based route",
+    archFourTitle: "Knowledge base",
+    archFourText: "Steps and agencies",
+    archFiveTitle: "Safe response",
+    archFiveText: "Navigation only",
+    previewLabel: "Product preview",
+    previewTitle: "Wage dispute — next steps",
+    previewStepOne: "Identify the correct labor route",
+    previewStepTwo: "Prepare supporting documents",
+    previewStepThree: "Contact the right institution",
+    previewStepFour: "Keep official records",
+    navigatorKicker: "Start here",
+    navigatorTitle: "Legal navigation workspace",
+    navigatorSub: "Choose a situation, adjust the context, and JustiAI will organize a procedural route and checklist.",
+    guardrailTitle: "Navigation-only mode",
+    guardrailText: "JustiAI organizes public procedural information. It does not decide rights, predict outcomes, or replace a lawyer.",
+    intakeTitle: "Case profile",
+    intakeMeta: "Labor dispute MVP",
+    issueLabel: "Issue type",
+    issueHint: "Choose one",
+    caseContext: "Case context",
+    caseContextHint: "Route tuning",
+    evidenceLabel: "Evidence available",
+    planTitle: "Procedure plan",
+    copyPlan: "Copy plan",
+    printPlan: "Print",
+    stepMetricLabel: "procedural steps",
+    docMetricLabel: "documents prepared",
+    riskMetricLabel: "boundary status",
+    stepsHeader: "Step-by-step route",
+    docsHeader: "Document checklist",
+    agenciesHeader: "Institutional links",
+    sourceNote: "Verify deadlines and submission details with official agencies before filing.",
+    ready: "ready",
+    missing: "missing",
+    updated: "Updated just now",
+    copied: "Copied",
+    boundaryOk: "OK",
+    boundaryUrgent: "Urgent",
+    knowledgeTitle: "Procedural knowledge base",
+    knowledgeSub: "The first JustiAI domain covers common labor routes in Taiwan: mediation, labor inspection, legal aid, and migrant worker support.",
+    kbMediationTitle: "Labor mediation",
+    kbMediationText: "Organize facts, submit an application, attend mediation, and keep the written record.",
+    kbInspectionTitle: "Complaint or inspection",
+    kbInspectionText: "Use when wages, overtime, working time, or safety issues require labor authority review.",
+    kbAidTitle: "Legal aid referral",
+    kbAidText: "Escalate when settlement fails, documents are complex, or court action may be needed.",
+    kbMigrantTitle: "Migrant worker support",
+    kbMigrantText: "Use worker hotlines and public agencies when language, employer control, or housing concerns affect access.",
+    boundariesTitle: "Legal-safety boundaries",
+    boundariesSub: "JustiAI is designed around procedural navigation. The product avoids advisory claims that could mislead vulnerable users or create legal-practice risk.",
+    allowedTitle: "Allowed output",
+    allowedOne: "Explain public procedures and required documents.",
+    allowedTwo: "Suggest institutions that can receive complaints or provide help.",
+    allowedThree: "Turn a user situation into a neutral preparation checklist.",
+    allowedFour: "Display official links and verification reminders.",
+    blockedTitle: "Blocked output",
+    blockedOne: "No legal opinion about who is right or wrong.",
+    blockedTwo: "No prediction of settlement amount or court outcome.",
+    blockedThree: "No instruction to ignore official notices or deadlines.",
+    blockedFour: "No replacement for lawyers, NGOs, courts, or labor authorities.",
+    impactOneTitle: "Understanding",
+    impactOneText: "Users see steps, documents, and institutional pathways in plain language.",
+    impactTwoTitle: "Engagement",
+    impactTwoText: "The product points users toward formal labor bureaus, hotlines, and legal aid.",
+    impactThreeTitle: "Lower friction",
+    impactThreeText: "Preparation is reduced to a structured checklist and route.",
+    impactFourTitle: "Inclusion",
+    impactFourText: "Chinese and English modes support first-time users and foreign residents.",
+    impactFiveTitle: "Safer AI use",
+    impactFiveText: "Guardrails keep the prototype away from automated legal advice.",
+    canvasPartners: "Key partners",
+    canvasPartnersText: "Legal Aid Foundation, Ministry of Labor, NGOs, worker communities.",
+    canvasActivities: "Key activities",
+    canvasActivitiesText: "Procedure modeling, validation, UX design, public-resource maintenance.",
+    canvasValue: "Value proposition",
+    canvasValueText: "Simplifies legal procedures without replacing legal professionals.",
+    canvasSegments: "Customer segments",
+    canvasSegmentsText: "Migrant workers, low-income workers, first-time legal-system users.",
+    canvasResources: "Key resources",
+    canvasResourcesText: "Structured legal knowledge base, multilingual content, institutional links.",
+    canvasChannels: "Channels",
+    canvasChannelsText: "Mobile web, NGO referral, worker communities, digital platforms.",
+    canvasCosts: "Cost structure",
+    canvasCostsText: "Technology development, compliance review, data updates, outreach.",
+    canvasRevenue: "Revenue streams",
+    canvasRevenueText: "Government grants, NGO partnerships, institutional licensing.",
+    teamTitle: "Team 6",
+    teamSub: "114-2 Software Engineering final project implementation based on the JustiAI midterm proposal.",
+    footerText: "Empowering access to justice through procedural clarity."
+  },
+  zh: {
+    skip: "跳到 demo",
+    navIntro: "介紹",
+    navBackground: "背景",
+    navUsers: "使用者",
+    navValue: "核心價值",
+    navSwot: "SWOT",
+    navReports: "文件",
+    navDemo: "Demo",
+    navNavigator: "開始",
+    navKnowledge: "知識庫",
+    navBoundaries: "安全邊界",
+    navImpact: "成果",
+    navTeam: "團隊",
+    kicker: "程序型法律導航",
+    heroTitle: "從法律建議轉向<span>程序導航</span>。",
+    heroSub: "JustiAI 幫助弱勢使用者、勞工與第一次接觸法律制度的人，理解下一步該做什麼，同時不取代法律專業人員。",
+    startButton: "Try Demo",
+    learnButton: "了解運作方式",
+    badgeProcedure: "程序指引",
+    badgeSafe: "導航，不是法律建議",
+    badgeBilingual: "中文 / English",
+    badgeAccess: "司法近用",
+    featureOneTitle: "選擇情境",
+    featureOneText: "從薪資、解僱、加班工時或職災問題開始。",
+    featureTwoTitle: "取得路徑",
+    featureTwoText: "查看步驟、文件、需確認的期限與機構。",
+    featureThreeTitle: "保持安全邊界",
+    featureThreeText: "清楚界線讓系統避免提供法律意見。",
+    backgroundTitle: "司法近用是一個系統性問題",
+    backgroundSub: "當程序難以理解時，只有法律權利並不足夠。在台灣，公共機構與法律扶助雖然存在，但程序複雜、語言障礙與資訊分散，仍會阻礙弱勢使用者採取下一步。",
+    backgroundOneTitle: "程序複雜",
+    backgroundOneText: "對法律知識有限的人而言，正式流程往往難以自行理解。",
+    backgroundTwoTitle: "制度障礙",
+    backgroundTwoText: "支援系統雖然存在，但使用者常不知道從哪裡開始或要準備什麼。",
+    backgroundThreeTitle: "需要導航",
+    backgroundThreeText: "使用者需要可行動的程序指引，而不是抽象法律分析。",
+    backgroundFourTitle: "更安全的法律科技",
+    backgroundFourText: "JustiAI 降低程序摩擦，同時避免自動化法律建議。",
+    usersTitle: "使用者情境",
+    usersSub: "參考學長姐作品的 user-story 呈現方式，JustiAI 以具體使用者與程序需求來說明產品價值。",
+    storyOneRole: "移工",
+    storyOneTitle: "Ana 需要處理薪資未付",
+    storyOneText: "Ana 不確定該打專線、聯繫雇主，還是申請調解。JustiAI 協助她整理薪資紀錄，並找出適合的勞政機關程序。",
+    storyTwoRole: "兼職工作者",
+    storyTwoTitle: "Ming 對加班工時感到困惑",
+    storyTwoText: "Ming 有班表截圖與薪資單，但不知道哪些算是有用證據。JustiAI 將情境轉成文件清單與下一步計畫。",
+    valueTitle: "把複雜程序變得可理解",
+    valueSub: "JustiAI 將法律程序整理成清楚、結構化且友善的步驟。",
+    valueOneTitle: "逐步指引",
+    valueOneText: "把程序拆成具體行動、必要文件與下一步。",
+    valueTwoTitle: "導航，不是建議",
+    valueTwoText: "提供程序方向，同時避免法律解釋與結果預測。",
+    valueThreeTitle: "包容設計",
+    valueThreeText: "以中文與英文支援初次使用者與外籍居民。",
+    valueFourTitle: "連結制度資源",
+    valueFourText: "協助使用者連結勞政機關、專線與法律扶助資源。",
+    swotTitle: "策略定位",
+    swotSub: "JustiAI 將 legal-tech 從「知道法律」轉向「導航制度」。",
+    swotStrengths: "Strengths",
+    swotStrengthsTitle: "我們的優勢",
+    swotSOne: "聚焦程序導航，而不是提供法律建議。",
+    swotSTwo: "模組化設計可擴充到不同法律領域。",
+    swotSThree: "雙語介面支援更廣泛的使用者。",
+    swotWeaknesses: "Weaknesses",
+    swotWeaknessesTitle: "需要補強之處",
+    swotWOne: "需要持續更新與驗證程序內容。",
+    swotWTwo: "必須與弱勢使用者建立信任。",
+    swotWThree: "早期商業化能力有限。",
+    swotOpportunities: "Opportunities",
+    swotOpportunitiesTitle: "成長機會",
+    swotOOne: "符合台灣數位治理發展方向。",
+    swotOTwo: "有機會與政府機關及 NGO 合作。",
+    swotOThree: "目前法律科技中缺少純程序導航工具。",
+    swotThreats: "Threats",
+    swotThreatsTitle: "需要注意的風險",
+    swotTOne: "監管審查與資料隱私疑慮。",
+    swotTTwo: "大型科技公司可能進入競爭。",
+    swotTThree: "若邊界不清，使用者可能誤解 AI 輸出。",
+    reportsTitle: "專案文件",
+    reportOneText: "專案建立在程序障礙、司法近用與安全法律科技設計之上。",
+    reportOneAction: "查看背景",
+    reportTwoTitle: "系統架構",
+    reportTwoText: "原型使用結構化程序資料、雙語介面文字與規則式導航邏輯。",
+    reportTwoAction: "查看知識庫",
+    reportThreeTitle: "可操作原型",
+    reportThreeText: "Web chatbot 是目前可操作 demo，之後可替換成正式部署的 LINE bot。",
+    reportThreeAction: "試用 demo",
+    demoTitle: "Demo 入口與系統架構",
+    demoSub: "網站現在採用類似學長姐作品的形式：先介紹專案，再把使用者導向 chatbot demo，之後可替換成真正的 LINE bot。",
+    demoQrTitle: "掃描 QR code 試用 demo",
+    demoQrText: "QR code 會連到 JustiAI 外部 chatbot demo 頁面。",
+    qrAlt: "JustiAI demo QR code",
+    demoTryButton: "開啟 Web Chatbot",
+    lineBotButton: "查看 LINE bot scaffold",
+    screenOneTop: "步驟 1",
+    screenOneBubble: "選擇勞動問題。",
+    screenOneLineA: "薪資未付",
+    screenOneLineB: "加班或工時",
+    screenOneLineC: "職業災害",
+    screenTwoTop: "步驟 2",
+    screenTwoBubble: "取得程序下一步。",
+    screenTwoLineA: "建立時間軸",
+    screenTwoLineB: "蒐集證據",
+    screenTwoLineC: "聯繫勞政機關",
+    screenThreeTop: "步驟 3",
+    screenThreeBubble: "使用官方資源。",
+    screenThreeLineA: "1955 專線",
+    screenThreeLineB: "地方勞工局",
+    screenThreeLineC: "法律扶助基金會",
+    architectureTitle: "系統架構",
+    archOneTitle: "LINE / Web UI",
+    archOneText: "使用者訊息",
+    archTwoTitle: "Webhook 後端",
+    archTwoText: "接收事件",
+    archThreeTitle: "程序引擎",
+    archThreeText: "規則式路徑",
+    archFourTitle: "知識庫",
+    archFourText: "步驟與機構",
+    archFiveTitle: "安全回覆",
+    archFiveText: "僅程序導航",
+    previewLabel: "產品預覽",
+    previewTitle: "薪資爭議 — 下一步",
+    previewStepOne: "確認正確的勞動程序",
+    previewStepTwo: "準備支持文件",
+    previewStepThree: "聯繫正確機構",
+    previewStepFour: "保存正式紀錄",
+    navigatorKicker: "從這裡開始",
+    navigatorTitle: "法律導航工作區",
+    navigatorSub: "選擇情境、調整案件脈絡，JustiAI 會整理程序路徑與文件清單。",
+    guardrailTitle: "僅提供程序導航",
+    guardrailText: "JustiAI 整理公開程序資訊，不判斷權利歸屬、不預測結果，也不取代律師。",
+    intakeTitle: "案件概況",
+    intakeMeta: "勞動爭議 MVP",
+    issueLabel: "問題類型",
+    issueHint: "選擇一項",
+    caseContext: "案件情境",
+    caseContextHint: "調整路徑",
+    evidenceLabel: "已有證據",
+    planTitle: "程序計畫",
+    copyPlan: "複製計畫",
+    printPlan: "列印",
+    stepMetricLabel: "程序步驟",
+    docMetricLabel: "文件已準備",
+    riskMetricLabel: "安全狀態",
+    stepsHeader: "逐步程序路徑",
+    docsHeader: "文件清單",
+    agenciesHeader: "機構與官方連結",
+    sourceNote: "送件前請向官方機關確認期限、申請方式與最新規定。",
+    ready: "已具備",
+    missing: "待補",
+    updated: "剛剛更新",
+    copied: "已複製",
+    boundaryOk: "正常",
+    boundaryUrgent: "急迫",
+    knowledgeTitle: "程序知識庫",
+    knowledgeSub: "JustiAI 第一個領域聚焦台灣常見勞動程序：調解、申訴或檢查、法律扶助、移工支援。",
+    kbMediationTitle: "勞資爭議調解",
+    kbMediationText: "整理事實、提出申請、參與調解，並保存調解紀錄。",
+    kbInspectionTitle: "申訴或勞動檢查",
+    kbInspectionText: "涉及薪資、加班、工時或職安問題時，可尋求勞政主管機關協助。",
+    kbAidTitle: "法律扶助轉介",
+    kbAidText: "若調解未果、文件複雜或可能進入法院程序，應轉介專業協助。",
+    kbMigrantTitle: "移工支援",
+    kbMigrantText: "當語言、雇主控制或住宿問題影響求助時，可使用專線與公共機構資源。",
+    boundariesTitle: "法律安全邊界",
+    boundariesSub: "JustiAI 的設計核心是程序導航，避免可能誤導弱勢使用者或構成法律執業風險的自動化法律意見。",
+    allowedTitle: "允許的輸出",
+    allowedOne: "說明公開程序與所需文件。",
+    allowedTwo: "建議可受理申訴或提供協助的機構。",
+    allowedThree: "把使用者情境整理成中立的準備清單。",
+    allowedFour: "顯示官方連結與查證提醒。",
+    blockedTitle: "禁止的輸出",
+    blockedOne: "不判斷誰對誰錯或權利歸屬。",
+    blockedTwo: "不預測和解金額或法院結果。",
+    blockedThree: "不指示使用者忽略官方通知或期限。",
+    blockedFour: "不取代律師、NGO、法院或勞政機關。",
+    impactOneTitle: "程序理解",
+    impactOneText: "使用者能以白話看到步驟、文件與機構路徑。",
+    impactTwoTitle: "制度參與",
+    impactTwoText: "產品把使用者導向勞工局、專線與法律扶助等正式資源。",
+    impactThreeTitle: "降低摩擦",
+    impactThreeText: "把準備工作拆成結構化清單與路線。",
+    impactFourTitle: "包容設計",
+    impactFourText: "中文與英文模式支援初次接觸制度者與外籍居民。",
+    impactFiveTitle: "安全 AI 使用",
+    impactFiveText: "安全邊界讓原型避免自動化法律建議。",
+    canvasPartners: "關鍵夥伴",
+    canvasPartnersText: "法律扶助基金會、勞動部、NGO、勞工社群。",
+    canvasActivities: "關鍵活動",
+    canvasActivitiesText: "程序建模、內容驗證、UX 設計、公共資源維護。",
+    canvasValue: "價值主張",
+    canvasValueText: "簡化法律程序，但不取代法律專業人員。",
+    canvasSegments: "目標族群",
+    canvasSegmentsText: "移工、低收入勞工、首次接觸法律制度者。",
+    canvasResources: "關鍵資源",
+    canvasResourcesText: "結構化法律知識庫、雙語內容、機構連結。",
+    canvasChannels: "通路",
+    canvasChannelsText: "行動網頁、NGO 轉介、勞工社群、數位平台。",
+    canvasCosts: "成本結構",
+    canvasCostsText: "技術開發、合規審查、資料更新、推廣合作。",
+    canvasRevenue: "收入來源",
+    canvasRevenueText: "政府補助、NGO 合作、機構授權。",
+    teamTitle: "Team 6",
+    teamSub: "114-2 Software Engineering 期末專案，根據 JustiAI 期中提案完成實作。",
+    footerText: "透過程序清晰度，提升司法近用。"
+  }
+};
 
-  hbg.addEventListener('click', () => {
-    hbg.classList.toggle('active');
-    navLinks.classList.toggle('open');
-  });
+const optionText = {
+  locations: {
+    taipei: { en: "Taipei City", zh: "臺北市" },
+    newTaipei: { en: "New Taipei City", zh: "新北市" },
+    taoyuan: { en: "Taoyuan City", zh: "桃園市" },
+    taichung: { en: "Taichung City", zh: "臺中市" },
+    other: { en: "Other city/county", zh: "其他縣市" }
+  },
+  urgency: {
+    standard: { en: "No immediate deadline", zh: "目前沒有急迫期限" },
+    meetingSoon: { en: "Mediation or meeting soon", zh: "近期有調解或會議" },
+    thirtyDays: { en: "Within 30 days", zh: "30 天內需要處理" },
+    immediate: { en: "Immediate safety or housing risk", zh: "有人身安全或住宿急迫風險" }
+  },
+  goals: {
+    prepare: { en: "Prepare before contacting employer", zh: "先整理資料再聯繫雇主" },
+    mediation: { en: "Apply for mediation", zh: "申請調解" },
+    inspection: { en: "File complaint or inspection request", zh: "提出申訴或請求檢查" },
+    legalAid: { en: "Seek legal aid", zh: "尋求法律扶助" }
+  },
+  worker: {
+    local: { en: "Local worker", zh: "本國勞工" },
+    migrant: { en: "Migrant worker", zh: "移工或外籍工作者" },
+    student: { en: "Student or part-time worker", zh: "學生或兼職工作者" },
+    unsure: { en: "Not sure", zh: "不確定" }
+  }
+};
 
-  navLinks.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      if (window.innerWidth <= 900) {
-        hbg.classList.remove('active');
-        navLinks.classList.remove('open');
+const issues = {
+  unpaidWages: {
+    badge: { en: "Wage route", zh: "薪資路徑" },
+    label: { en: "Unpaid wages", zh: "薪資未付" },
+    help: { en: "Salary, final pay, deductions, or delayed payment.", zh: "薪資、離職薪資、扣薪或延遲給付。" },
+    title: { en: "Unpaid wage procedural route", zh: "薪資未付程序路徑" },
+    summary: {
+      en: "Prepare wage records, request written clarification, and use mediation or complaint channels if payment is not resolved.",
+      zh: "先整理薪資紀錄並要求書面說明；若未獲處理，再使用調解或申訴管道。"
+    },
+    steps: [
+      {
+        en: "Create a wage timeline.",
+        zh: "建立薪資時間軸。",
+        note: {
+          en: "Record pay period, agreed wage, payday, missing amount, and any deductions.",
+          zh: "記錄薪資期間、約定薪資、發薪日、未付金額與扣款內容。"
+        }
+      },
+      {
+        en: "Collect wage and communication evidence.",
+        zh: "蒐集薪資與溝通證據。",
+        note: {
+          en: "Keep salary slips, transfer records, attendance records, messages, and contract screenshots.",
+          zh: "保存薪資單、轉帳紀錄、出勤紀錄、訊息與契約截圖。"
+        }
+      },
+      {
+        en: "Ask for written payment confirmation.",
+        zh: "要求雇主以書面確認付款。",
+        note: {
+          en: "Use neutral language and keep a copy of the request.",
+          zh: "以中立文字提出，並保留請求紀錄。"
+        }
+      },
+      {
+        en: "Apply for labor dispute mediation through the local labor authority.",
+        zh: "向工作所在地勞政主管機關申請勞資爭議調解。",
+        note: {
+          en: "Bring the wage timeline and evidence list to support the mediation discussion.",
+          zh: "攜帶薪資時間軸與證據清單，協助調解討論。"
+        }
+      },
+      {
+        en: "If payment remains unresolved, ask the authority or legal aid about the next procedural channel.",
+        zh: "若仍未解決，向主管機關或法律扶助詢問下一個程序管道。",
+        note: {
+          en: "Possible next channels may include complaint, inspection, payment order, or litigation depending on facts.",
+          zh: "依事實可能包含申訴、檢查、支付命令或訴訟等後續程序。"
+        }
       }
-    });
-  });
+    ],
+    documents: ["id", "contract", "salary", "attendance", "messages", "bank", "timeline"]
+  },
+  termination: {
+    badge: { en: "Dismissal route", zh: "解僱路徑" },
+    label: { en: "Sudden termination", zh: "突然解僱" },
+    help: { en: "Dismissal, forced resignation, or unclear final pay.", zh: "解僱、被迫離職或離職薪資不明。" },
+    title: { en: "Termination procedural route", zh: "解僱爭議程序路徑" },
+    summary: {
+      en: "Secure written notices, final wage details, and work records before deciding whether mediation, complaint, or legal aid is needed.",
+      zh: "先保存解僱通知、離職薪資與工作紀錄，再判斷是否需要調解、申訴或法律扶助。"
+    },
+    steps: [
+      {
+        en: "Preserve the termination record.",
+        zh: "保存解僱或離職紀錄。",
+        note: {
+          en: "Keep notice letters, messages, resignation forms, meeting notes, and final-pay statements.",
+          zh: "保留通知書、訊息、離職單、會議紀錄與離職薪資明細。"
+        }
+      },
+      {
+        en: "Write down the employment timeline.",
+        zh: "整理任職時間軸。",
+        note: {
+          en: "Include start date, role, wage, work location, termination date, and stated reason.",
+          zh: "包含到職日、職務、薪資、工作地、離職日與雇主表示的原因。"
+        }
+      },
+      {
+        en: "Clarify final pay, severance, and certificate needs.",
+        zh: "確認離職薪資、資遣相關資料與證明需求。",
+        note: {
+          en: "Ask for written breakdowns rather than relying on verbal explanations.",
+          zh: "盡量要求書面明細，不只依賴口頭說明。"
+        }
+      },
+      {
+        en: "Use mediation to create an official discussion record.",
+        zh: "透過調解建立正式討論紀錄。",
+        note: {
+          en: "A mediated record helps organize contested facts and settlement terms.",
+          zh: "調解紀錄有助於整理爭點與和解條件。"
+        }
+      },
+      {
+        en: "Seek legal aid if the dispute may require court procedure or urgent document review.",
+        zh: "若可能進入法院程序或需要緊急審閱文件，尋求法律扶助。",
+        note: {
+          en: "Legal professionals can evaluate claims; JustiAI only organizes procedural preparation.",
+          zh: "法律專業人員可評估主張；JustiAI 僅整理程序準備。"
+        }
+      }
+    ],
+    documents: ["id", "contract", "terminationNotice", "salary", "messages", "attendance", "timeline"]
+  },
+  overtime: {
+    badge: { en: "Working-time route", zh: "工時路徑" },
+    label: { en: "Overtime or working hours", zh: "加班或工時問題" },
+    help: { en: "Overtime pay, rest days, schedules, or excessive hours.", zh: "加班費、休息日、排班或超時工作。" },
+    title: { en: "Overtime procedural route", zh: "加班與工時程序路徑" },
+    summary: {
+      en: "Build a working-time record, compare it with payroll, and use authority channels if the pattern cannot be resolved internally.",
+      zh: "建立工時紀錄並比對薪資；若內部無法處理，再使用主管機關程序。"
+    },
+    steps: [
+      {
+        en: "Reconstruct the work schedule.",
+        zh: "重建工作排班。",
+        note: {
+          en: "Record actual start time, end time, breaks, rest days, and public holiday work.",
+          zh: "記錄實際上班、下班、休息、例休與國定假日出勤。"
+        }
+      },
+      {
+        en: "Match attendance records with payroll.",
+        zh: "比對出勤紀錄與薪資。",
+        note: {
+          en: "Keep punch records, rosters, screenshots, and wage statements.",
+          zh: "保存打卡、班表、截圖與薪資明細。"
+        }
+      },
+      {
+        en: "Prepare a short issue summary.",
+        zh: "準備簡短爭點摘要。",
+        note: {
+          en: "State the period, number of disputed hours, and documents available.",
+          zh: "說明期間、爭議時數與目前文件。"
+        }
+      },
+      {
+        en: "Contact the local labor authority for mediation or inspection guidance.",
+        zh: "向所在地勞政主管機關詢問調解或檢查管道。",
+        note: {
+          en: "Authority staff can identify the correct filing path for the specific workplace.",
+          zh: "主管機關可協助確認該工作場所適合的送件方式。"
+        }
+      },
+      {
+        en: "Keep every notice and response after filing.",
+        zh: "送件後保存所有通知與回覆。",
+        note: {
+          en: "Official letters, hearing notices, and mediation records become part of the procedure file.",
+          zh: "公文、開會通知與調解紀錄都會成為程序檔案的一部分。"
+        }
+      }
+    ],
+    documents: ["id", "contract", "attendance", "roster", "salary", "messages", "timeline"]
+  },
+  injury: {
+    badge: { en: "Work-injury route", zh: "職災路徑" },
+    label: { en: "Work injury", zh: "職業災害" },
+    help: { en: "Accident, medical leave, injury records, or compensation questions.", zh: "事故、病假、受傷紀錄或補償問題。" },
+    title: { en: "Work-injury procedural route", zh: "職業災害程序路徑" },
+    summary: {
+      en: "Prioritize medical records and incident documentation, then ask the appropriate agency or legal aid about compensation and dispute channels.",
+      zh: "優先保存醫療與事故紀錄，再向相關機關或法律扶助確認補償與爭議程序。"
+    },
+    steps: [
+      {
+        en: "Secure medical care and records.",
+        zh: "先就醫並保存醫療紀錄。",
+        note: {
+          en: "Keep diagnosis certificates, receipts, leave notes, and treatment timelines.",
+          zh: "保存診斷證明、收據、請假紀錄與治療時間軸。"
+        }
+      },
+      {
+        en: "Document the incident.",
+        zh: "記錄事故發生情形。",
+        note: {
+          en: "Write down date, location, task, equipment, witnesses, and photos if available.",
+          zh: "記錄日期、地點、工作內容、設備、目擊者與照片。"
+        }
+      },
+      {
+        en: "Ask the employer for written reporting status.",
+        zh: "要求雇主書面說明通報或處理狀態。",
+        note: {
+          en: "Keep all employer responses and avoid signing unclear settlement documents without review.",
+          zh: "保留雇主回覆；未審閱前避免簽署不清楚的和解文件。"
+        }
+      },
+      {
+        en: "Contact the local labor authority or 1955 hotline for procedural direction.",
+        zh: "向所在地勞政主管機關或 1955 專線確認程序方向。",
+        note: {
+          en: "Use the hotline especially when language, housing, or employer control creates pressure.",
+          zh: "若有語言、住宿或雇主控制壓力，優先使用專線資源。"
+        }
+      },
+      {
+        en: "Seek legal aid if compensation, insurance, or employment status is disputed.",
+        zh: "若補償、保險或身分認定有爭議，尋求法律扶助。",
+        note: {
+          en: "A lawyer or legal aid office can evaluate rights and strategy.",
+          zh: "律師或法律扶助可評估權利與策略。"
+        }
+      }
+    ],
+    documents: ["id", "contract", "medical", "incident", "photos", "messages", "timeline"]
+  }
+};
 
-  document.addEventListener('click', e => {
-    if (window.innerWidth <= 900 && !hbg.contains(e.target) && !navLinks.contains(e.target)) {
-      hbg.classList.remove('active');
-      navLinks.classList.remove('open');
+const evidence = {
+  contract: { en: "Contract", zh: "契約" },
+  salary: { en: "Salary slip", zh: "薪資單" },
+  attendance: { en: "Attendance record", zh: "出勤紀錄" },
+  messages: { en: "Messages", zh: "訊息紀錄" },
+  bank: { en: "Bank transfer", zh: "轉帳紀錄" },
+  terminationNotice: { en: "Termination notice", zh: "解僱通知" },
+  roster: { en: "Shift roster", zh: "班表" },
+  medical: { en: "Medical certificate", zh: "診斷證明" },
+  incident: { en: "Incident note", zh: "事故紀錄" },
+  photos: { en: "Photos", zh: "照片" }
+};
+
+const documents = {
+  id: {
+    label: { en: "Identification or residence document", zh: "身分或居留文件" },
+    note: { en: "Used by agencies to confirm identity.", zh: "供機關確認身分使用。" }
+  },
+  contract: {
+    label: { en: "Employment contract or offer record", zh: "勞動契約或錄用紀錄" },
+    note: { en: "Shows role, wage, work location, and employer.", zh: "顯示職務、薪資、工作地與雇主。" },
+    evidence: "contract"
+  },
+  salary: {
+    label: { en: "Salary slip or wage statement", zh: "薪資單或薪資明細" },
+    note: { en: "Useful for wage, overtime, and final-pay issues.", zh: "適用薪資、加班與離職薪資爭議。" },
+    evidence: "salary"
+  },
+  attendance: {
+    label: { en: "Attendance or punch record", zh: "出勤或打卡紀錄" },
+    note: { en: "Shows actual work time and disputed hours.", zh: "顯示實際工時與爭議時數。" },
+    evidence: "attendance"
+  },
+  messages: {
+    label: { en: "Messages with employer or supervisor", zh: "與雇主或主管的訊息" },
+    note: { en: "Keep screenshots with date, sender, and context.", zh: "截圖需保留日期、發送者與上下文。" },
+    evidence: "messages"
+  },
+  bank: {
+    label: { en: "Bank transfer or payment record", zh: "轉帳或付款紀錄" },
+    note: { en: "Helps show actual payment received.", zh: "可顯示實際收到的款項。" },
+    evidence: "bank"
+  },
+  timeline: {
+    label: { en: "One-page timeline summary", zh: "一頁式時間軸摘要" },
+    note: { en: "List dates, events, amount, and requested outcome.", zh: "列出日期、事件、金額與希望處理方式。" }
+  },
+  terminationNotice: {
+    label: { en: "Termination notice or resignation record", zh: "解僱通知或離職紀錄" },
+    note: { en: "Preserve written notice and employer explanation.", zh: "保存書面通知與雇主說明。" },
+    evidence: "terminationNotice"
+  },
+  roster: {
+    label: { en: "Shift roster or schedule", zh: "班表或排班紀錄" },
+    note: { en: "Compare planned work time with actual attendance.", zh: "比對排班與實際出勤。" },
+    evidence: "roster"
+  },
+  medical: {
+    label: { en: "Medical certificate and receipts", zh: "診斷證明與醫療收據" },
+    note: { en: "Prioritize official medical documents.", zh: "優先保存正式醫療文件。" },
+    evidence: "medical"
+  },
+  incident: {
+    label: { en: "Incident report or written note", zh: "事故報告或書面紀錄" },
+    note: { en: "Include location, task, witnesses, and equipment involved.", zh: "包含地點、工作內容、目擊者與相關設備。" },
+    evidence: "incident"
+  },
+  photos: {
+    label: { en: "Photos or workplace evidence", zh: "照片或工作場所證據" },
+    note: { en: "Keep original files when possible.", zh: "盡可能保留原始檔案。" },
+    evidence: "photos"
+  }
+};
+
+const agencies = [
+  {
+    name: { en: "Ministry of Labor", zh: "勞動部" },
+    text: {
+      en: "Public labor procedure and worker protection information.",
+      zh: "勞動程序與勞工保護相關公開資訊。"
+    },
+    url: "https://www.mol.gov.tw/"
+  },
+  {
+    name: { en: "Local labor authority", zh: "地方勞政主管機關" },
+    text: {
+      en: "Usually the first place for mediation, complaint, or workplace-specific filing guidance.",
+      zh: "通常是調解、申訴或工作所在地送件指引的第一站。"
+    },
+    url: "https://www.mol.gov.tw/1607/28690/89680/"
+  },
+  {
+    name: { en: "1955 migrant worker hotline", zh: "1955 移工諮詢保護專線" },
+    text: {
+      en: "Use when language, employer control, housing, or urgent pressure affects access.",
+      zh: "當語言、雇主控制、住宿或急迫壓力影響求助時使用。"
+    },
+    url: "https://www.wda.gov.tw/en/News_Content.aspx?n=278&s=18966"
+  },
+  {
+    name: { en: "Legal Aid Foundation", zh: "法律扶助基金會" },
+    text: {
+      en: "Use when legal advice, representation, or document review may be needed.",
+      zh: "需要法律意見、代理或文件審閱時使用。"
+    },
+    url: "https://www.laf.org.tw/en/"
+  }
+];
+
+const state = {
+  lang: localStorage.getItem("justiai-lang") || "en",
+  issue: localStorage.getItem("justiai-issue") || "unpaidWages",
+  location: localStorage.getItem("justiai-location") || "taipei",
+  urgency: localStorage.getItem("justiai-urgency") || "standard",
+  goal: localStorage.getItem("justiai-goal") || "mediation",
+  worker: localStorage.getItem("justiai-worker") || "migrant",
+  evidence: new Set(JSON.parse(localStorage.getItem("justiai-evidence") || "[]")),
+  docsDone: new Set(JSON.parse(localStorage.getItem("justiai-docs") || "[]"))
+};
+
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+function t(key) {
+  return copy[state.lang][key] || copy.en[key] || key;
+}
+
+function localize(value) {
+  if (typeof value === "string") return value;
+  return value[state.lang] || value.en || "";
+}
+
+function saveState() {
+  localStorage.setItem("justiai-lang", state.lang);
+  localStorage.setItem("justiai-issue", state.issue);
+  localStorage.setItem("justiai-location", state.location);
+  localStorage.setItem("justiai-urgency", state.urgency);
+  localStorage.setItem("justiai-goal", state.goal);
+  localStorage.setItem("justiai-worker", state.worker);
+  localStorage.setItem("justiai-evidence", JSON.stringify([...state.evidence]));
+  localStorage.setItem("justiai-docs", JSON.stringify([...state.docsDone]));
+}
+
+function translateStaticText() {
+  document.documentElement.lang = state.lang === "zh" ? "zh-Hant" : "en";
+  $$("[data-i18n]").forEach((el) => {
+    const value = t(el.dataset.i18n);
+    if (value.includes("<span>")) {
+      el.innerHTML = value;
+    } else {
+      el.textContent = value;
     }
   });
+  $$("[data-i18n-alt]").forEach((el) => {
+    el.setAttribute("alt", t(el.dataset.i18nAlt));
+  });
+  $$(".lang-btn").forEach((button) => {
+    button.classList.toggle("active", button.dataset.langOption === state.lang);
+  });
+}
+
+function renderSelect(select, options, selectedValue) {
+  select.innerHTML = "";
+  Object.entries(options).forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = localize(label);
+    option.selected = value === selectedValue;
+    select.append(option);
+  });
+}
+
+function renderIssueChoices() {
+  const container = $("#issueChoices");
+  container.innerHTML = "";
+  Object.entries(issues).forEach(([key, issue]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `choice-button${state.issue === key ? " active" : ""}`;
+    button.setAttribute("aria-pressed", state.issue === key);
+    button.innerHTML = `
+      <span class="choice-dot" aria-hidden="true"></span>
+      <span>
+        <span class="choice-label">${localize(issue.label)}</span>
+        <span class="choice-help">${localize(issue.help)}</span>
+      </span>
+    `;
+    button.addEventListener("click", () => {
+      state.issue = key;
+      saveState();
+      render();
+    });
+    container.append(button);
+  });
+}
+
+function renderEvidenceChoices() {
+  const container = $("#evidenceChoices");
+  container.innerHTML = "";
+  Object.entries(evidence).forEach(([key, label]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `evidence-chip${state.evidence.has(key) ? " active" : ""}`;
+    button.setAttribute("aria-pressed", state.evidence.has(key));
+    button.textContent = localize(label);
+    button.addEventListener("click", () => {
+      if (state.evidence.has(key)) {
+        state.evidence.delete(key);
+      } else {
+        state.evidence.add(key);
+      }
+      saveState();
+      render();
+    });
+    container.append(button);
+  });
+  $("#evidenceCount").textContent = `${state.evidence.size}/${Object.keys(evidence).length}`;
+}
+
+function getNextAction(issue) {
+  if (state.urgency === "immediate") {
+    return {
+      title: { en: "Prioritize safety and urgent access", zh: "優先處理安全與急迫求助" },
+      text: {
+        en: "Contact a public hotline, local authority, NGO, or emergency service before continuing the normal dispute route.",
+        zh: "在進行一般爭議程序前，先聯絡公共專線、地方主管機關、NGO 或緊急服務。"
+      }
+    };
+  }
+  if (state.goal === "legalAid") {
+    return {
+      title: { en: "Prepare for legal aid intake", zh: "準備法律扶助諮詢" },
+      text: {
+        en: "Bring identification, the timeline, core evidence, and official notices for legal review.",
+        zh: "攜帶身分文件、時間軸、主要證據與官方通知，供法律專業人員審閱。"
+      }
+    };
+  }
+  if (state.goal === "inspection") {
+    return {
+      title: { en: "Confirm complaint or inspection channel", zh: "確認申訴或檢查管道" },
+      text: {
+        en: "Use the local labor authority to confirm the correct filing route for the work location.",
+        zh: "向工作所在地勞政主管機關確認正確的送件方式。"
+      }
+    };
+  }
+  if (state.goal === "prepare") {
+    return {
+      title: { en: "Finish the one-page case summary", zh: "完成一頁式案件摘要" },
+      text: {
+        en: "Summarize dates, employer, issue, amount or harm, evidence, and preferred procedural next step.",
+        zh: "整理日期、雇主、問題、金額或損害、證據，以及想採取的程序下一步。"
+      }
+    };
+  }
+  return {
+    title: { en: "Prepare mediation materials", zh: "準備調解資料" },
+    text: {
+      en: `Use the ${localize(optionText.locations[state.location])} route and bring the checklist items to the local labor authority.`,
+      zh: `依 ${localize(optionText.locations[state.location])} 的工作所在地路徑，攜帶清單文件向地方勞政主管機關確認。`
+    }
+  };
+}
+
+function renderPlan() {
+  const issue = issues[state.issue];
+  const routeDocs = issue.documents.map((docKey) => documents[docKey]);
+  const preparedCount = issue.documents.filter((docKey) => state.docsDone.has(docKey)).length;
+  const nextAction = getNextAction(issue);
+
+  $("#routeLabel").textContent = localize(issue.badge);
+  $("#routeTitle").textContent = localize(issue.title);
+  $("#routeSummary").textContent = localize(issue.summary);
+  $("#stepMetric").textContent = issue.steps.length;
+  $("#docMetric").textContent = `${preparedCount}/${routeDocs.length}`;
+  $("#riskMetric").textContent = state.urgency === "immediate" ? t("boundaryUrgent") : t("boundaryOk");
+  $("#updatedAt").textContent = t("updated");
+  $("#nextActionTitle").textContent = localize(nextAction.title);
+  $("#nextActionText").textContent = localize(nextAction.text);
+
+  const stepList = $("#stepList");
+  stepList.innerHTML = "";
+  issue.steps.forEach((step, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span class="step-number">${index + 1}</span>
+      <span>
+        <span class="step-title">${localize(step)}</span>
+        <span class="step-note">${localize(step.note)}</span>
+      </span>
+    `;
+    stepList.append(li);
+  });
+
+  const docList = $("#docList");
+  docList.innerHTML = "";
+  issue.documents.forEach((docKey) => {
+    const doc = documents[docKey];
+    const hasEvidence = doc.evidence ? state.evidence.has(doc.evidence) : false;
+    const isPrepared = state.docsDone.has(docKey);
+    const li = document.createElement("li");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = isPrepared;
+    checkbox.setAttribute("aria-label", localize(doc.label));
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        state.docsDone.add(docKey);
+      } else {
+        state.docsDone.delete(docKey);
+      }
+      saveState();
+      renderPlan();
+    });
+
+    const text = document.createElement("span");
+    text.innerHTML = `<span class="check-title">${localize(doc.label)}</span><span class="check-note">${localize(doc.note)}</span>`;
+
+    const tag = document.createElement("span");
+    tag.className = `tag ${hasEvidence || isPrepared ? "ready" : "missing"}`;
+    tag.textContent = hasEvidence || isPrepared ? t("ready") : t("missing");
+
+    li.append(checkbox, text, tag);
+    docList.append(li);
+  });
+
+  const agencyList = $("#agencyList");
+  agencyList.innerHTML = "";
+  agencies.forEach((agency) => {
+    const item = document.createElement("div");
+    item.className = "agency";
+    item.innerHTML = `
+      <a href="${agency.url}" target="_blank" rel="noopener">${localize(agency.name)} ↗</a>
+      <span>${localize(agency.text)}</span>
+    `;
+    agencyList.append(item);
+  });
+}
+
+function renderFormControls() {
+  renderSelect($("#locationSelect"), optionText.locations, state.location);
+  renderSelect($("#urgencySelect"), optionText.urgency, state.urgency);
+  renderSelect($("#goalSelect"), optionText.goals, state.goal);
+  renderSelect($("#workerSelect"), optionText.worker, state.worker);
+}
+
+function render() {
+  translateStaticText();
+  renderFormControls();
+  renderIssueChoices();
+  renderEvidenceChoices();
+  renderPlan();
+}
+
+function buildPlainTextPlan() {
+  const issue = issues[state.issue];
+  const next = getNextAction(issue);
+  const lines = [
+    "JustiAI procedure plan",
+    localize(issue.title),
+    "",
+    localize(issue.summary),
+    "",
+    `${localize({ en: "Location", zh: "地點" })}: ${localize(optionText.locations[state.location])}`,
+    `${localize({ en: "Goal", zh: "目標" })}: ${localize(optionText.goals[state.goal])}`,
+    `${localize({ en: "Urgency", zh: "急迫性" })}: ${localize(optionText.urgency[state.urgency])}`,
+    "",
+    `${localize({ en: "Next action", zh: "下一步" })}: ${localize(next.title)} - ${localize(next.text)}`,
+    "",
+    localize({ en: "Steps", zh: "步驟" })
+  ];
+  issue.steps.forEach((step, index) => {
+    lines.push(`${index + 1}. ${localize(step)} ${localize(step.note)}`);
+  });
+  lines.push("", localize({ en: "Documents", zh: "文件" }));
+  issue.documents.forEach((docKey) => {
+    lines.push(`- ${localize(documents[docKey].label)}`);
+  });
+  lines.push("", localize({ en: "Safety note: procedural navigation only; verify official details before filing.", zh: "安全提醒：僅提供程序導航；送件前請向官方機關確認。" }));
+  return lines.join("\n");
+}
+
+$("#locationSelect").addEventListener("change", (event) => {
+  state.location = event.target.value;
+  saveState();
+  renderPlan();
+});
+
+$("#urgencySelect").addEventListener("change", (event) => {
+  state.urgency = event.target.value;
+  saveState();
+  renderPlan();
+});
+
+$("#goalSelect").addEventListener("change", (event) => {
+  state.goal = event.target.value;
+  saveState();
+  renderPlan();
+});
+
+$("#workerSelect").addEventListener("change", (event) => {
+  state.worker = event.target.value;
+  saveState();
+  renderPlan();
+});
+
+$$(".lang-btn").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.lang = button.dataset.langOption;
+    saveState();
+    render();
+  });
+});
+
+$("#copyPlanBtn").addEventListener("click", async () => {
+  const button = $("#copyPlanBtn");
+  const original = t("copyPlan");
+  try {
+    await navigator.clipboard.writeText(buildPlainTextPlan());
+    button.textContent = t("copied");
+  } catch (error) {
+    const textarea = document.createElement("textarea");
+    textarea.value = buildPlainTextPlan();
+    document.body.append(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+    button.textContent = t("copied");
+  }
+  setTimeout(() => {
+    button.textContent = original;
+  }, 1200);
+});
+
+$("#printPlanBtn").addEventListener("click", () => window.print());
+
+const menuButton = $("#menuButton");
+const navLinks = $("#navLinks");
+menuButton.addEventListener("click", () => {
+  const isOpen = navLinks.classList.toggle("open");
+  menuButton.classList.toggle("active", isOpen);
+  menuButton.setAttribute("aria-expanded", isOpen);
+});
+
+navLinks.querySelectorAll("a").forEach((link) => {
+  link.addEventListener("click", () => {
+    navLinks.classList.remove("open");
+    menuButton.classList.remove("active");
+    menuButton.setAttribute("aria-expanded", "false");
+  });
+});
+
+render();
 </script>
 </body>
 </html>
