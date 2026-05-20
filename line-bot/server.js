@@ -106,9 +106,29 @@ function readBody(request) {
 
 const server = createServer(async (request, response) => {
   try {
+    if (request.method === "GET" && request.url === "/") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({
+        ok: true,
+        service: "JustiAI LINE bot",
+        health: "/health",
+        webhook: "POST /webhook"
+      }));
+      return;
+    }
+
     if (request.method === "GET" && request.url === "/health") {
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ ok: true }));
+      return;
+    }
+
+    if (request.method === "GET" && request.url === "/webhook") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({
+        ok: true,
+        message: "LINE will call this endpoint with POST requests. Set this URL in LINE Developers as your webhook URL."
+      }));
       return;
     }
 
