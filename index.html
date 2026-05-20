@@ -94,10 +94,9 @@ header {
 }
 
 .nav-wrap {
-  max-width: 1180px;
+  width: 100%;
   min-height: 72px;
-  margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 24px 0 clamp(16px, 4vw, 52px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -127,6 +126,7 @@ header {
 nav ul {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
   list-style: none;
 }
@@ -1677,10 +1677,12 @@ footer strong {
   .nav-wrap {
     min-height: 64px;
     padding: 0 16px;
+    gap: 0;
   }
 
   .hamburger {
     display: inline-flex;
+    margin-left: auto;
   }
 
   nav ul {
@@ -1817,7 +1819,6 @@ footer strong {
 <header>
   <div class="nav-wrap">
     <a class="brand" href="#intro" aria-label="JustiAI">
-      <img src="justiai.png" alt="">
       <strong>Justi<span>AI</span></strong>
     </a>
     <button class="hamburger" id="menuButton" aria-label="Toggle menu" aria-expanded="false"><span></span></button>
@@ -1909,7 +1910,6 @@ footer strong {
   <section class="band" id="background">
     <div class="section-inner">
       <h2 class="section-heading" data-i18n="backgroundTitle">Access to justice is a systems problem</h2>
-      <p class="section-sub" data-i18n="backgroundSub">Legal rights alone are not enough when procedures are difficult to understand. In Taiwan, public institutions and legal aid exist, but procedural complexity, language barriers, and fragmented information still prevent vulnerable users from taking the next step.</p>
       <div class="route-grid">
         <div class="route-tile">
           <strong data-i18n="backgroundOneTitle">Procedural complexity</strong>
@@ -1952,7 +1952,6 @@ footer strong {
   <section class="band" id="value">
     <div class="section-inner">
       <h2 class="section-heading" data-i18n="valueTitle">Simplifying what feels impossibly complex</h2>
-      <p class="section-sub" data-i18n="valueSub">JustiAI focuses on simplifying legal procedures into clear, structured, and user-friendly steps.</p>
       <div class="route-grid">
         <div class="route-tile">
           <strong data-i18n="valueOneTitle">Step-by-step guidance</strong>
@@ -1977,7 +1976,6 @@ footer strong {
   <section class="band alt" id="swot">
     <div class="section-inner">
       <h2 class="section-heading" data-i18n="swotTitle">Strategic positioning</h2>
-      <p class="section-sub" data-i18n="swotSub">JustiAI shifts legal-tech from "knowing the law" to "navigating the system."</p>
       <div class="swot-grid">
         <div class="swot-item swot-s">
           <span class="swot-tag" data-i18n="swotStrengths">Strengths</span>
@@ -2355,7 +2353,6 @@ const copy = {
     featureThreeTitle: "Stay protected",
     featureThreeText: "Clear boundaries keep the system away from legal advice.",
     backgroundTitle: "Access to justice is a systems problem",
-    backgroundSub: "Legal rights alone are not enough when procedures are difficult to understand. In Taiwan, public institutions and legal aid exist, but procedural complexity, language barriers, and fragmented information still prevent vulnerable users from taking the next step.",
     backgroundOneTitle: "Procedural complexity",
     backgroundOneText: "Formal processes can be hard to navigate for people with limited legal literacy.",
     backgroundTwoTitle: "Institutional barriers",
@@ -2372,7 +2369,6 @@ const copy = {
     storyTwoTitle: "Ming faces overtime confusion",
     storyTwoText: "Ming has screenshots of shifts and salary slips but does not know what counts as useful evidence. JustiAI turns the situation into a checklist and next-step plan.",
     valueTitle: "Simplifying what feels impossibly complex",
-    valueSub: "JustiAI focuses on simplifying legal procedures into clear, structured, and user-friendly steps.",
     valueOneTitle: "Step-by-step guidance",
     valueOneText: "Breaks procedures into simple actions, required documents, and next steps.",
     valueTwoTitle: "Navigation, not advice",
@@ -2382,7 +2378,6 @@ const copy = {
     valueFourTitle: "Institutional linkage",
     valueFourText: "Connects users with labor authorities, hotlines, and legal aid resources.",
     swotTitle: "Strategic positioning",
-    swotSub: "JustiAI shifts legal-tech from \"knowing the law\" to \"navigating the system.\"",
     swotStrengths: "Strengths",
     swotStrengthsTitle: "What we do well",
     swotSOne: "Focuses on procedural navigation rather than legal advice.",
@@ -2556,7 +2551,6 @@ const copy = {
     featureThreeTitle: "保持安全邊界",
     featureThreeText: "清楚界線讓系統避免提供法律意見。",
     backgroundTitle: "司法近用是一個系統性問題",
-    backgroundSub: "當程序難以理解時，只有法律權利並不足夠。在台灣，公共機構與法律扶助雖然存在，但程序複雜、語言障礙與資訊分散，仍會阻礙弱勢使用者採取下一步。",
     backgroundOneTitle: "程序複雜",
     backgroundOneText: "對法律知識有限的人而言，正式流程往往難以自行理解。",
     backgroundTwoTitle: "制度障礙",
@@ -2573,7 +2567,6 @@ const copy = {
     storyTwoTitle: "Ming 對加班工時感到困惑",
     storyTwoText: "Ming 有班表截圖與薪資單，但不知道哪些算是有用證據。JustiAI 將情境轉成文件清單與下一步計畫。",
     valueTitle: "把複雜程序變得可理解",
-    valueSub: "JustiAI 將法律程序整理成清楚、結構化且友善的步驟。",
     valueOneTitle: "逐步指引",
     valueOneText: "把程序拆成具體行動、必要文件與下一步。",
     valueTwoTitle: "導航，不是建議",
@@ -2583,7 +2576,6 @@ const copy = {
     valueFourTitle: "連結制度資源",
     valueFourText: "協助使用者連結勞政機關、專線與法律扶助資源。",
     swotTitle: "策略定位",
-    swotSub: "JustiAI 將 legal-tech 從「知道法律」轉向「導航制度」。",
     swotStrengths: "Strengths",
     swotStrengthsTitle: "我們的優勢",
     swotSOne: "聚焦程序導航，而不是提供法律建議。",
