@@ -5,38 +5,192 @@ const channelSecret = process.env.LINE_CHANNEL_SECRET;
 const channelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const port = Number(process.env.PORT || 3000);
 
+const copy = {
+  zh: {
+    welcome: [
+      "歡迎使用 JustiAI。",
+      "我提供程序導航，不提供法律意見，也不判斷誰對誰錯。",
+      "",
+      "Welcome to JustiAI.",
+      "I provide procedural navigation only, not legal advice.",
+      "",
+      "請先選擇語言 / Please choose a language."
+    ].join("\n"),
+    chooseIssue: "請選擇你遇到的問題類型。",
+    chooseAction: "你想查看哪一項？",
+    selected: "已選擇",
+    issueFirst: "請先選擇問題類型，再選擇程序、文件或機構。",
+    stepsTitle: "程序步驟",
+    docsTitle: "所需文件",
+    agenciesTitle: "相關機構與網站",
+    safety: "安全提醒：採取行動前，請向官方機關確認期限、送件方式與最新規定。",
+    urgent: "若有人身安全、住宿或雇主控制等急迫問題，請優先聯繫公共專線或緊急服務。",
+    language: "語言",
+    changeIssue: "重選問題",
+    steps: "程序",
+    documents: "文件",
+    agencies: "機構"
+  },
+  en: {
+    welcome: [
+      "歡迎使用 JustiAI。",
+      "我提供程序導航，不提供法律意見，也不判斷誰對誰錯。",
+      "",
+      "Welcome to JustiAI.",
+      "I provide procedural navigation only, not legal advice.",
+      "",
+      "請先選擇語言 / Please choose a language."
+    ].join("\n"),
+    chooseIssue: "Please choose the issue you are facing.",
+    chooseAction: "What would you like to view?",
+    selected: "Selected",
+    issueFirst: "Please choose an issue first, then choose steps, documents, or agencies.",
+    stepsTitle: "Procedure steps",
+    docsTitle: "Required documents",
+    agenciesTitle: "Related agencies and websites",
+    safety: "Safety note: verify deadlines, filing methods, and latest rules with official agencies before taking action.",
+    urgent: "For urgent safety, housing, or employer-control concerns, contact public hotlines or emergency services first.",
+    language: "Language",
+    changeIssue: "Change issue",
+    steps: "Steps",
+    documents: "Documents",
+    agencies: "Agencies"
+  }
+};
+
 const routes = {
   wage: {
     keywords: ["wage", "salary", "pay", "薪資", "工資", "未付"],
-    title: "Unpaid wages / 薪資未付",
-    steps: [
-      "Create a wage timeline / 建立薪資時間軸",
-      "Collect salary slips, transfer records, attendance, and messages / 蒐集薪資單、轉帳、出勤與訊息",
-      "Ask for written payment clarification / 要求書面確認付款",
-      "Contact the local labor authority for mediation / 向地方勞政主管機關申請調解"
-    ]
+    label: { zh: "薪資未付", en: "Unpaid wages" },
+    steps: {
+      zh: [
+        "建立薪資時間軸，記錄期間、約定薪資、發薪日與未付金額。",
+        "蒐集薪資單、轉帳紀錄、出勤紀錄與雇主訊息。",
+        "要求雇主以書面確認付款狀態。",
+        "向地方勞政主管機關申請勞資爭議調解。",
+        "若仍未解決，向法律扶助詢問後續程序。"
+      ],
+      en: [
+        "Create a wage timeline with pay period, agreed wage, payday, and missing amount.",
+        "Collect salary slips, transfer records, attendance records, and employer messages.",
+        "Ask the employer for written payment clarification.",
+        "Apply for labor dispute mediation through the local labor authority.",
+        "If unresolved, ask legal aid about next procedural channels."
+      ]
+    },
+    documents: {
+      zh: [
+        "身分或居留文件",
+        "勞動契約或錄用紀錄",
+        "薪資單或薪資明細",
+        "轉帳或付款紀錄",
+        "與雇主或主管的訊息",
+        "一頁式時間軸摘要"
+      ],
+      en: [
+        "ID or residence document",
+        "Employment contract or offer record",
+        "Salary slip or wage statement",
+        "Bank transfer or payment record",
+        "Messages with employer or supervisor",
+        "One-page timeline summary"
+      ]
+    }
   },
   overtime: {
     keywords: ["overtime", "hours", "shift", "加班", "工時", "班表"],
-    title: "Overtime or working hours / 加班或工時",
-    steps: [
-      "Reconstruct the work schedule / 重建工作排班",
-      "Match attendance with payroll / 比對出勤與薪資",
-      "Prepare a short issue summary / 準備爭點摘要",
-      "Ask the local labor authority about mediation or inspection / 詢問調解或檢查管道"
-    ]
+    label: { zh: "加班或工時問題", en: "Overtime or working hours" },
+    steps: {
+      zh: [
+        "重建實際工作時間，包含上班、下班、休息與休假日。",
+        "比對出勤紀錄、班表與薪資明細。",
+        "準備簡短爭點摘要，說明期間與爭議時數。",
+        "向地方勞政主管機關詢問調解或勞動檢查管道。",
+        "送件後保存所有官方通知與回覆。"
+      ],
+      en: [
+        "Reconstruct actual work time, including start, end, breaks, and rest days.",
+        "Match attendance records, shift rosters, and payroll statements.",
+        "Prepare a short issue summary with period and disputed hours.",
+        "Ask the local labor authority about mediation or labor inspection.",
+        "Keep every official notice and response after filing."
+      ]
+    },
+    documents: {
+      zh: [
+        "出勤或打卡紀錄",
+        "班表或排班紀錄",
+        "薪資單或薪資明細",
+        "與雇主或主管的訊息",
+        "一頁式爭點摘要"
+      ],
+      en: [
+        "Attendance or punch record",
+        "Shift roster or schedule",
+        "Salary slip or wage statement",
+        "Messages with employer or supervisor",
+        "One-page issue summary"
+      ]
+    }
   },
   injury: {
     keywords: ["injury", "accident", "medical", "職災", "受傷", "事故"],
-    title: "Work injury / 職業災害",
-    steps: [
-      "Secure medical records / 保存醫療紀錄",
-      "Document incident date, location, task, and witnesses / 記錄事故日期、地點、工作內容與目擊者",
-      "Ask employer for written reporting status / 要求雇主書面說明通報狀態",
-      "Contact labor authority, 1955, or legal aid / 聯絡勞政機關、1955 或法律扶助"
-    ]
+    label: { zh: "職業災害", en: "Work injury" },
+    steps: {
+      zh: [
+        "優先就醫並保存醫療紀錄。",
+        "記錄事故日期、地點、工作內容、目擊者與照片。",
+        "要求雇主以書面說明通報與處理狀態。",
+        "聯絡地方勞政主管機關或 1955 專線確認程序方向。",
+        "若補償、保險或身分認定有爭議，尋求法律扶助。"
+      ],
+      en: [
+        "Prioritize medical care and preserve medical records.",
+        "Document incident date, location, task, witnesses, and photos.",
+        "Ask the employer for written reporting and handling status.",
+        "Contact the local labor authority or 1955 hotline for procedural direction.",
+        "Seek legal aid if compensation, insurance, or employment status is disputed."
+      ]
+    },
+    documents: {
+      zh: [
+        "診斷證明與醫療收據",
+        "事故紀錄或報告",
+        "照片或工作場所證據",
+        "與雇主或主管的訊息",
+        "勞動契約或工作紀錄"
+      ],
+      en: [
+        "Medical certificate and receipts",
+        "Incident note or report",
+        "Photos or workplace evidence",
+        "Messages with employer or supervisor",
+        "Employment contract or work record"
+      ]
+    }
   }
 };
+
+const agencies = [
+  {
+    label: { zh: "勞動部", en: "Ministry of Labor" },
+    url: "https://www.mol.gov.tw/"
+  },
+  {
+    label: { zh: "地方勞政主管機關", en: "Local labor authority" },
+    url: "https://www.mol.gov.tw/1607/28690/89680/"
+  },
+  {
+    label: { zh: "1955 移工諮詢保護專線", en: "1955 migrant worker hotline" },
+    url: "https://www.wda.gov.tw/en/News_Content.aspx?n=278&s=18966"
+  },
+  {
+    label: { zh: "法律扶助基金會", en: "Legal Aid Foundation" },
+    url: "https://www.laf.org.tw/en/"
+  }
+];
+
+const userSessions = new Map();
 
 function verifySignature(body, signature) {
   if (!channelSecret || !signature) return false;
@@ -46,34 +200,194 @@ function verifySignature(body, signature) {
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-function matchRoute(text) {
-  const normalized = text.toLowerCase();
-  return Object.values(routes).find((route) =>
-    route.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))
-  );
+function localize(value, lang) {
+  return value[lang] || value.en || value.zh || "";
 }
 
-function buildReply(text) {
-  const route = matchRoute(text || "");
-  if (!route) {
+function bulletList(items) {
+  return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+}
+
+function getSession(sourceId) {
+  const session = userSessions.get(sourceId) || { lang: null, issue: null };
+  userSessions.set(sourceId, session);
+  return session;
+}
+
+function languageFromText(text) {
+  const normalized = (text || "").toLowerCase();
+  if (["中文", "chinese", "zh"].some((keyword) => normalized.includes(keyword))) return "zh";
+  if (["english", "英文", "en"].some((keyword) => normalized.includes(keyword))) return "en";
+  return null;
+}
+
+function matchRoute(text) {
+  const normalized = (text || "").toLowerCase();
+  return Object.entries(routes).find(([, route]) =>
+    route.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))
+  )?.[0] || null;
+}
+
+function optionFromText(text) {
+  const normalized = (text || "").toLowerCase();
+  if (["程序", "步驟", "steps", "procedure"].some((keyword) => normalized.includes(keyword))) return "steps";
+  if (["文件", "documents", "document", "docs", "checklist"].some((keyword) => normalized.includes(keyword))) return "documents";
+  if (["機構", "agency", "agencies", "1955", "hotline", "website", "網站"].some((keyword) => normalized.includes(keyword))) return "agencies";
+  if (["重選", "重新", "change", "restart"].some((keyword) => normalized.includes(keyword))) return "restart";
+  if (["語言", "language"].some((keyword) => normalized.includes(keyword))) return "language";
+  return null;
+}
+
+function messageAction(label, text) {
+  return { type: "action", action: { type: "message", label, text } };
+}
+
+function uriAction(label, uri) {
+  return { type: "action", action: { type: "uri", label, uri } };
+}
+
+function quickReply(items) {
+  return { items };
+}
+
+function languageQuickReply() {
+  return quickReply([
+    messageAction("中文", "中文"),
+    messageAction("English", "English")
+  ]);
+}
+
+function issueQuickReply(lang) {
+  return quickReply([
+    messageAction(localize(routes.wage.label, lang), localize(routes.wage.label, lang)),
+    messageAction(localize(routes.overtime.label, lang), localize(routes.overtime.label, lang)),
+    messageAction(localize(routes.injury.label, lang), localize(routes.injury.label, lang)),
+    messageAction(copy[lang].language, copy[lang].language)
+  ]);
+}
+
+function actionQuickReply(lang) {
+  return quickReply([
+    messageAction(copy[lang].steps, copy[lang].steps),
+    messageAction(copy[lang].documents, copy[lang].documents),
+    messageAction(copy[lang].agencies, copy[lang].agencies),
+    messageAction(copy[lang].changeIssue, copy[lang].changeIssue),
+    messageAction(copy[lang].language, copy[lang].language)
+  ]);
+}
+
+function agencyQuickReply(lang) {
+  return quickReply([
+    ...agencies.map((agency) => uriAction(localize(agency.label, lang), agency.url)),
+    messageAction(copy[lang].changeIssue, copy[lang].changeIssue)
+  ]);
+}
+
+function textMessage(text, reply) {
+  const message = { type: "text", text };
+  if (reply) message.quickReply = reply;
+  return message;
+}
+
+function welcomeMessage() {
+  return textMessage(copy.zh.welcome, languageQuickReply());
+}
+
+function issuePrompt(lang) {
+  return [
+    copy[lang].chooseIssue,
+    "",
+    copy[lang].safety
+  ].join("\n");
+}
+
+function actionPrompt(route, lang) {
+  return [
+    `${copy[lang].selected}: ${localize(route.label, lang)}`,
+    copy[lang].chooseAction
+  ].join("\n");
+}
+
+function buildContent(route, option, lang) {
+  if (option === "documents") {
     return [
-      "JustiAI provides procedural navigation only, not legal advice.",
-      "Please type one issue: wage / overtime / injury",
-      "請輸入問題類型：薪資 / 加班 / 職災"
+      `${copy[lang].docsTitle}: ${localize(route.label, lang)}`,
+      "",
+      bulletList(route.documents[lang]),
+      "",
+      copy[lang].safety
+    ].join("\n");
+  }
+
+  if (option === "agencies") {
+    return [
+      `${copy[lang].agenciesTitle}: ${localize(route.label, lang)}`,
+      "",
+      ...agencies.map((agency, index) => `${index + 1}. ${localize(agency.label, lang)}\n${agency.url}`),
+      "",
+      copy[lang].urgent
     ].join("\n");
   }
 
   return [
-    `JustiAI route: ${route.title}`,
+    `${copy[lang].stepsTitle}: ${localize(route.label, lang)}`,
     "",
-    ...route.steps.map((step, index) => `${index + 1}. ${step}`),
+    bulletList(route.steps[lang]),
     "",
-    "Safety note: verify deadlines and filing details with official agencies before action.",
-    "安全提醒：行動前請向官方機關確認期限與送件方式。"
+    copy[lang].safety
   ].join("\n");
 }
 
-async function replyMessage(replyToken, text) {
+function buildReply(text, sourceId) {
+  const session = getSession(sourceId);
+  const langChoice = languageFromText(text);
+
+  if (langChoice) {
+    session.lang = langChoice;
+    session.issue = null;
+    return textMessage(issuePrompt(session.lang), issueQuickReply(session.lang));
+  }
+
+  if (!session.lang) {
+    return welcomeMessage();
+  }
+
+  const lang = session.lang;
+  const option = optionFromText(text);
+
+  if (option === "language") {
+    session.lang = null;
+    session.issue = null;
+    return welcomeMessage();
+  }
+
+  if (option === "restart") {
+    session.issue = null;
+    return textMessage(issuePrompt(lang), issueQuickReply(lang));
+  }
+
+  const routeKey = matchRoute(text);
+  if (routeKey) {
+    session.issue = routeKey;
+    return textMessage(actionPrompt(routes[routeKey], lang), actionQuickReply(lang));
+  }
+
+  if (!session.issue) {
+    return textMessage(copy[lang].issueFirst, issueQuickReply(lang));
+  }
+
+  if (option === "agencies") {
+    return textMessage(buildContent(routes[session.issue], option, lang), agencyQuickReply(lang));
+  }
+
+  if (option === "documents" || option === "steps") {
+    return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang));
+  }
+
+  return textMessage(actionPrompt(routes[session.issue], lang), actionQuickReply(lang));
+}
+
+async function replyMessages(replyToken, messages) {
   if (!channelAccessToken) {
     throw new Error("Missing LINE_CHANNEL_ACCESS_TOKEN");
   }
@@ -86,7 +400,7 @@ async function replyMessage(replyToken, text) {
     },
     body: JSON.stringify({
       replyToken,
-      messages: [{ type: "text", text }]
+      messages
     })
   });
 
@@ -150,8 +464,14 @@ const server = createServer(async (request, response) => {
     const events = payload.events || [];
 
     await Promise.all(events.map(async (event) => {
+      if (event.type === "follow") {
+        await replyMessages(event.replyToken, [welcomeMessage()]);
+        return;
+      }
+
       if (event.type !== "message" || event.message?.type !== "text") return;
-      await replyMessage(event.replyToken, buildReply(event.message.text));
+      const sourceId = event.source?.userId || event.source?.groupId || event.source?.roomId || "anonymous";
+      await replyMessages(event.replyToken, [buildReply(event.message.text, sourceId)]);
     }));
 
     response.writeHead(200, { "Content-Type": "application/json" });
