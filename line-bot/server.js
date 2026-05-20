@@ -64,6 +64,7 @@ const routes = {
   wage: {
     keywords: ["wage", "salary", "pay", "薪資", "工資", "未付"],
     label: { zh: "薪資未付", en: "Unpaid wages" },
+    buttonLabel: { zh: "薪資未付", en: "Wages" },
     steps: {
       zh: [
         "建立薪資時間軸，記錄期間、約定薪資、發薪日與未付金額。",
@@ -102,6 +103,7 @@ const routes = {
   overtime: {
     keywords: ["overtime", "hours", "shift", "加班", "工時", "班表"],
     label: { zh: "加班或工時問題", en: "Overtime or working hours" },
+    buttonLabel: { zh: "加班工時", en: "Overtime" },
     steps: {
       zh: [
         "重建實際工作時間，包含上班、下班、休息與休假日。",
@@ -138,6 +140,7 @@ const routes = {
   injury: {
     keywords: ["injury", "accident", "medical", "職災", "受傷", "事故"],
     label: { zh: "職業災害", en: "Work injury" },
+    buttonLabel: { zh: "職業災害", en: "Work injury" },
     steps: {
       zh: [
         "優先就醫並保存醫療紀錄。",
@@ -176,18 +179,22 @@ const routes = {
 const agencies = [
   {
     label: { zh: "勞動部", en: "Ministry of Labor" },
+    buttonLabel: { zh: "勞動部", en: "MOL" },
     url: "https://www.mol.gov.tw/"
   },
   {
     label: { zh: "地方勞政主管機關", en: "Local labor authority" },
+    buttonLabel: { zh: "地方勞政機關", en: "Labor authority" },
     url: "https://www.mol.gov.tw/1607/28690/89680/"
   },
   {
     label: { zh: "1955 移工諮詢保護專線", en: "1955 migrant worker hotline" },
+    buttonLabel: { zh: "1955 專線", en: "1955 Hotline" },
     url: "https://www.wda.gov.tw/en/News_Content.aspx?n=278&s=18966"
   },
   {
     label: { zh: "法律扶助基金會", en: "Legal Aid Foundation" },
+    buttonLabel: { zh: "法律扶助", en: "Legal Aid" },
     url: "https://www.laf.org.tw/en/"
   }
 ];
@@ -261,9 +268,9 @@ function languageQuickReply() {
 
 function issueQuickReply(lang) {
   return quickReply([
-    messageAction(localize(routes.wage.label, lang), localize(routes.wage.label, lang)),
-    messageAction(localize(routes.overtime.label, lang), localize(routes.overtime.label, lang)),
-    messageAction(localize(routes.injury.label, lang), localize(routes.injury.label, lang))
+    messageAction(localize(routes.wage.buttonLabel, lang), localize(routes.wage.label, lang)),
+    messageAction(localize(routes.overtime.buttonLabel, lang), localize(routes.overtime.label, lang)),
+    messageAction(localize(routes.injury.buttonLabel, lang), localize(routes.injury.label, lang))
   ]);
 }
 
@@ -283,7 +290,7 @@ function actionQuickReply(lang, exclude = null) {
 }
 
 function agencyQuickReply(lang) {
-  return quickReply(agencies.map((agency) => uriAction(localize(agency.label, lang), agency.url)));
+  return quickReply([messageAction(copy[lang].changeIssue, copy[lang].changeIssue)]);
 }
 
 function textMessage(text, reply) {
@@ -326,9 +333,8 @@ function buildContent(route, option, lang) {
     return [
       `${copy[lang].agenciesTitle}: ${localize(route.label, lang)}`,
       "",
-      bulletList(agencies.map((agency) => localize(agency.label, lang))),
+      ...agencies.map((agency, index) => `${index + 1}. ${localize(agency.label, lang)}\n${agency.url}`),
       "",
-      copy[lang].agencyInstruction,
       copy[lang].urgent
     ].join("\n");
   }
