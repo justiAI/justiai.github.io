@@ -534,7 +534,8 @@ async function deliverMessages(event, messages) {
 
 async function handleLineEvent(event) {
   if (event.type === "follow") {
-    await deliverMessages(event, [welcomeMessage()]);
+    const userId = getSourceId(event);
+    await pushMessages(userId, [welcomeMessage()]);
     return;
   }
 
