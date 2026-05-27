@@ -492,6 +492,8 @@ function cleanAiAnswer(text) {
     .replace(/\*\*/g, "")
     .replace(/^[\s　]*(您好|你好)[，,！!。\s]*(我是\s*)?JustiAI[，,。.\s]*/i, "")
     .replace(/^[\s　]*(hello|hi)[,!.\s]*(i am|i'm)\s+JustiAI[,.!\s]*/i, "")
+    .replace(/可能已違反[^，。！？!?\n]*(規定|法律|法規)[！!。]?/g, "可能涉及權益或安全風險。")
+    .replace(/可能違反[^，。！？!?\n]*(規定|法律|法規)[！!。]?/g, "可能涉及權益或安全風險。")
     .replace(/已違反[^，。！？!?\n]*(規定|法律|法規)[！!。]?/g, "可能涉及權益或安全風險。")
     .replace(/違反[^，。！？!?\n]*(規定|法律|法規)[！!。]?/g, "可能涉及權益或安全風險。")
     .replace(/是違法行為/g, "可能涉及權益或安全風險")
@@ -516,7 +518,7 @@ function aiInstructions(lang, route) {
     routeContext,
     "Return only the final user-facing answer. Do not include drafts, analysis, labels, hidden reasoning, formatting notes, or meta commentary.",
     "Start directly with the useful answer. Do not greet the user and do not introduce yourself.",
-    "Use a concise LINE chat style and answer in complete sentences.",
+    "Use a clear LINE chat style and answer in complete sentences.",
     "Do not use Markdown, emoji, bold text, or internal headings.",
     "If the user's message is too vague, ask one short clarifying question instead of inventing categories or a menu.",
     "Only provide procedural navigation, document preparation, safety reminders, and official-resource direction.",
@@ -570,7 +572,6 @@ async function aiFallbackMessage(text, lang, session, sourceId) {
           }
         ],
         generationConfig: {
-          maxOutputTokens: 768,
           temperature: 0.3
         }
       })
