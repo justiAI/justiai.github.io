@@ -29,6 +29,7 @@ const copy = {
     sessionExpired: "你已閒置一段時間。為了避免使用到舊選項，請重新選擇問題類型。",
     issueFirst: "請先選擇問題類型，再選擇程序、文件或機構。",
     aiUnavailable: "目前 AI 回覆暫時無法使用。你可以先使用下方選項進行法律程序導航。",
+    vagueInput: "請簡短描述你遇到的狀況，例如薪資、工時、職災、文件或要找哪個機關。我會依照你的描述提供程序導航。",
     stepsTitle: "程序步驟",
     docsTitle: "所需文件",
     agenciesTitle: "相關機構與網站",
@@ -57,6 +58,7 @@ const copy = {
     sessionExpired: "You have been idle for a while. To avoid using old options, please choose the issue again.",
     issueFirst: "Please choose an issue first, then choose steps, documents, or agencies.",
     aiUnavailable: "AI replies are temporarily unavailable. You can still use the options below for procedural navigation.",
+    vagueInput: "Please briefly describe your situation, such as wages, working hours, work injury, documents, or which agency you need. I will provide procedural navigation based on your description.",
     stepsTitle: "Procedure steps",
     docsTitle: "Required documents",
     agenciesTitle: "Related agencies and websites",
@@ -325,6 +327,11 @@ function optionFromText(text) {
   return null;
 }
 
+function isVagueFallbackText(text) {
+  const normalized = (text || "").trim().toLowerCase();
+  return ["其他", "其它", "other", "others", "else", "something else"].includes(normalized);
+}
+
 function messageAction(label, text) {
   return { type: "action", action: { type: "message", label, text } };
 }
@@ -379,6 +386,10 @@ function textMessage(text, reply) {
 
 function welcomeMessage() {
   return textMessage(copy.zh.welcome, languageQuickReply());
+}
+
+function languagePromptMessage() {
+  return textMessage("請選擇語言 / Please choose a language.", languageQuickReply());
 }
 
 function expiredWelcomeMessage() {
@@ -478,6 +489,17 @@ function cleanAiAnswer(text) {
       ].some((phrase) => normalized.includes(phrase));
     })
     .join("\n")
+    .replace(/\*\*/g, "")
+    .replace(/^[\s　]*(您好|你好)[，,！!。\s]*(我是\s*)?JustiAI[，,。.\s]*/i, "")
+    .replace(/^[\s　]*(hello|hi)[,!.\s]*(i am|i'm)\s+JustiAI[,.!\s]*/i, "")
+    .replace(/已違反[^，。！？!?\n]*(規定|法律|法規)[！!。]?/g, "可能涉及權益或安全風險。")
+    .replace(/違反[^，。！？!?\n]*(規定|法律|法規)[！!。]?/g, "可能涉及權益或安全風險。")
+    .replace(/是違法行為/g, "可能涉及權益或安全風險")
+    .replace(/是違法的/g, "可能涉及權益或安全風險")
+    .replace(/違法行為/g, "權益或安全風險")
+    .replace(/違法/g, "可能涉及權益或安全風險")
+    .replace(/\bis illegal\b/gi, "may involve rights or safety risks")
+    .replace(/\bunlawful\b/gi, "may involve rights or safety risks")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -493,19 +515,37 @@ function aiInstructions(lang, route) {
     "You are JustiAI, a Taiwan-focused procedural legal navigation assistant.",
     routeContext,
     "Return only the final user-facing answer. Do not include drafts, analysis, labels, hidden reasoning, formatting notes, or meta commentary.",
-    "Use a concise LINE chat style. Keep the answer under 900 characters.",
+    "Start directly with the useful answer. Do not greet the user and do not introduce yourself.",
+    "Use a concise LINE chat style and answer in complete sentences.",
+    "Do not use Markdown, emoji, bold text, or internal headings.",
+    "If the user's message is too vague, ask one short clarifying question instead of inventing categories or a menu.",
     "Only provide procedural navigation, document preparation, safety reminders, and official-resource direction.",
-    "Do not provide legal advice, decide who is right or wrong, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
+    "Do not provide legal advice, decide who is right or wrong, label conduct as legal or illegal, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
     "If the user asks for legal judgment, merits analysis, or blame, politely redirect to procedural next steps and official or legal-aid resources.",
     "If the question is outside procedural navigation, briefly say you can only help with procedural navigation.",
     "If the user seems to need wage, overtime, or work-injury help, tell them they can continue with the buttons below."
   ].join("\n");
 }
 
-async function aiFallbackMessage(text, lang, session) {
+async function showLoadingAnimation(chatId, loadingSeconds = 20) {
+  if (!channelAccessToken || !chatId?.startsWith("U")) return;
+
+  try {
+    await sendLineApi("/v2/bot/chat/loading/start", {
+      chatId,
+      loadingSeconds
+    });
+  } catch (error) {
+    console.error("LINE loading animation failed.", error);
+  }
+}
+
+async function aiFallbackMessage(text, lang, session, sourceId) {
   if (!geminiApiKey) {
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
   }
+
+  await showLoadingAnimation(sourceId);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
@@ -530,7 +570,7 @@ async function aiFallbackMessage(text, lang, session) {
           }
         ],
         generationConfig: {
-          maxOutputTokens: 512,
+          maxOutputTokens: 768,
           temperature: 0.3
         }
       })
@@ -543,7 +583,7 @@ async function aiFallbackMessage(text, lang, session) {
     const data = await response.json();
     const answer = cleanAiAnswer(extractGeminiText(data));
     if (!answer) throw new Error("Gemini API returned no text");
-    return textMessage(answer.slice(0, 1800), fallbackQuickReply(session, lang));
+    return textMessage(answer, fallbackQuickReply(session, lang));
   } catch (error) {
     console.error("AI fallback failed.", error);
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
@@ -582,7 +622,7 @@ async function buildReply(text, sourceId) {
 
   if (!session.lang) {
     if (option === "language") {
-      return welcomeMessage();
+      return languagePromptMessage();
     }
     if (routeKey) {
       session.lang = currentLang;
@@ -599,7 +639,10 @@ async function buildReply(text, sourceId) {
       return textMessage(copy[currentLang].issueFirst, issueQuickReply(currentLang));
     }
     session.lang = currentLang;
-    return aiFallbackMessage(text, currentLang, session);
+    if (isVagueFallbackText(text)) {
+      return textMessage(copy[currentLang].vagueInput, issueQuickReply(currentLang));
+    }
+    return aiFallbackMessage(text, currentLang, session, sourceId);
   }
 
   const lang = currentLang;
@@ -609,7 +652,7 @@ async function buildReply(text, sourceId) {
     session.lang = null;
     session.issue = null;
     session.lastOption = null;
-    return welcomeMessage();
+    return languagePromptMessage();
   }
 
   if (option === "restart") {
@@ -628,7 +671,10 @@ async function buildReply(text, sourceId) {
     if (option) {
       return textMessage(copy[lang].issueFirst, issueQuickReply(lang));
     }
-    return aiFallbackMessage(text, lang, session);
+    if (isVagueFallbackText(text)) {
+      return textMessage(copy[lang].vagueInput, issueQuickReply(lang));
+    }
+    return aiFallbackMessage(text, lang, session, sourceId);
   }
 
   if (option === "agencies") {
@@ -641,7 +687,11 @@ async function buildReply(text, sourceId) {
     return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang, option));
   }
 
-  return aiFallbackMessage(text, lang, session);
+  if (isVagueFallbackText(text)) {
+    return textMessage(copy[lang].vagueInput, actionQuickReply(lang, session.lastOption));
+  }
+
+  return aiFallbackMessage(text, lang, session, sourceId);
 }
 
 async function sendLineApi(path, body) {
