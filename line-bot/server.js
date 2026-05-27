@@ -311,8 +311,9 @@ function matchRoute(text) {
 function optionFromText(text) {
   const normalized = (text || "").toLowerCase();
   if ([
-    "程序", "步驟", "流程", "下一步", "怎麼做", "如何做", "申請", "調解",
-    "steps", "procedure", "process", "next step", "what should i do"
+    "程序", "步驟", "流程", "下一步", "怎麼做", "怎麼辦", "怎辦", "該怎麼辦", "該怎麼做",
+    "如何做", "如何處理", "申請", "調解",
+    "steps", "procedure", "process", "next step", "what should i do", "what can i do", "how should i handle"
   ].some((keyword) => normalized.includes(keyword))) return "steps";
   if ([
     "文件", "資料", "證據", "需要準備", "準備什麼", "要帶什麼", "清單",
@@ -628,9 +629,12 @@ async function buildReply(text, sourceId) {
     if (routeKey) {
       session.lang = currentLang;
       session.issue = routeKey;
-      session.lastOption = null;
+      session.lastOption = option === "steps" ? "steps" : null;
       session.updatedAt = Date.now();
       session.expired = false;
+      if (option === "steps") {
+        return textMessage(buildContent(routes[routeKey], "steps", currentLang), actionQuickReply(currentLang, "steps"));
+      }
       return textMessage(actionPrompt(routes[routeKey], currentLang), actionQuickReply(currentLang));
     }
     if (option) {
@@ -664,7 +668,10 @@ async function buildReply(text, sourceId) {
 
   if (routeKey) {
     session.issue = routeKey;
-    session.lastOption = null;
+    session.lastOption = option === "steps" ? "steps" : null;
+    if (option === "steps") {
+      return textMessage(buildContent(routes[routeKey], "steps", lang), actionQuickReply(lang, "steps"));
+    }
     return textMessage(actionPrompt(routes[routeKey], lang), actionQuickReply(lang));
   }
 
