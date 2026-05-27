@@ -515,6 +515,24 @@ function appendAiExchange(session, userText, modelText) {
   ].slice(-maxAiHistoryMessages);
 }
 
+function shouldShowIssueQuickReplyForAiAnswer(answer, session) {
+  if (session.issue) return false;
+
+  const normalized = (answer || "").toLowerCase();
+  return [
+    "遇到了什麼",
+    "什麼樣的法律糾紛",
+    "哪方面的",
+    "問題類型",
+    "需要哪方面",
+    "what issue",
+    "what kind of",
+    "which issue",
+    "what legal",
+    "which area"
+  ].some((keyword) => normalized.includes(keyword));
+}
+
 function historyContextText(history) {
   if (!history.length) return "";
 
@@ -584,44 +602,20 @@ function formatForLine(text, maxLineLength = 34) {
     .flatMap((paragraph) => {
       if (paragraph.length <= maxLineLength) return [paragraph];
 
-      const normalized = paragraph
+      return paragraph
         .replace(/([。！？!?])\s*/g, "$1\n")
-        .replace(/([；;])\s*/g, "$1\n")
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean);
-
-      return normalized.flatMap((line) => {
-        if (line.length <= maxLineLength) return [line];
-
-        const chunks = [];
-        let remaining = line;
-        while (remaining.length > maxLineLength) {
-          let cutAt = Math.max(
-            remaining.lastIndexOf("，", maxLineLength),
-            remaining.lastIndexOf(",", maxLineLength),
-            remaining.lastIndexOf("、", maxLineLength),
-            remaining.lastIndexOf(" ", maxLineLength)
-          );
-          if (cutAt < Math.floor(maxLineLength * 0.5)) cutAt = maxLineLength;
-          chunks.push(remaining.slice(0, cutAt + 1).trim());
-          remaining = remaining.slice(cutAt + 1).trim();
-        }
-        if (remaining) chunks.push(remaining);
-        return chunks;
-      });
     })
     .join("\n");
 }
 
-function aiInstructions(lang, route, options = {}) {
+function aiInstructions(lang, route) {
   const language = lang === "zh" ? "Traditional Chinese" : "English";
   const routeContext = route
     ? `The user is currently in this route: ${localize(route.label, lang)}.`
     : "The user has not selected a route yet.";
-  const finalTurnInstruction = options.finalTurn
-    ? "This is the final allowed AI follow-up turn for this issue. Do not ask another clarifying question. Give the best procedural result from the known facts, state any important assumptions briefly, and close with official-resource direction."
-    : "If the user's message is too vague, ask one short clarifying question instead of inventing categories or a menu.";
 
   return [
     `Reply in ${language}.`,
@@ -632,7 +626,7 @@ function aiInstructions(lang, route, options = {}) {
     "Use a clear LINE chat style and answer in complete sentences.",
     "Do not use Markdown, emoji, bold text, or internal headings.",
     "Use the prior conversation messages to understand short follow-up answers to your clarifying questions.",
-    finalTurnInstruction,
+    "If the user's message is too vague, ask one short clarifying question instead of inventing categories or a menu.",
     "Only provide procedural navigation, document preparation, safety reminders, and official-resource direction.",
     "Do not provide legal advice, decide who is right or wrong, label conduct as legal or illegal, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
     "If the user asks for legal judgment, merits analysis, or blame, politely redirect to procedural next steps and official or legal-aid resources.",
@@ -683,7 +677,7 @@ function isQuotaError(error) {
   return error?.status === 429 || error?.code === "RESOURCE_EXHAUSTED";
 }
 
-async function requestGeminiAnswer({ text, lang, route, aiHistory, finalTurn, signal }) {
+async function requestGeminiAnswer({ text, lang, route, aiHistory, signal }) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
     method: "POST",
     signal,
@@ -693,7 +687,7 @@ async function requestGeminiAnswer({ text, lang, route, aiHistory, finalTurn, si
     },
     body: JSON.stringify({
       systemInstruction: {
-        parts: [{ text: aiInstructions(lang, route, { finalTurn }) }]
+        parts: [{ text: aiInstructions(lang, route) }]
       },
       contents: [
         ...aiHistory,
@@ -731,7 +725,6 @@ async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
   try {
     const route = options.useCurrentIssue === false || !session.issue ? null : routes[session.issue];
     const aiHistory = normalizedAiHistory(session);
-    const finalTurn = aiHistory.length >= maxAiHistoryMessages - 2;
     let answer;
 
     try {
@@ -740,7 +733,6 @@ async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
         lang,
         route,
         aiHistory,
-        finalTurn,
         signal: controller.signal
       });
     } catch (historyError) {
@@ -751,12 +743,13 @@ async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
         lang,
         route,
         aiHistory: [],
-        finalTurn,
         signal: controller.signal
       });
     }
     appendAiExchange(session, text, answer);
-    return textMessage(answer, options.quickReply ?? null);
+    const quickReply = options.quickReply
+      ?? (shouldShowIssueQuickReplyForAiAnswer(answer, session) ? issueQuickReply(lang) : null);
+    return textMessage(answer, quickReply);
   } catch (error) {
     console.error("AI fallback failed.", error);
     if (isQuotaError(error)) {
@@ -858,6 +851,11 @@ async function buildReply(text, sourceId) {
 
   if (!session.issue) {
     if (option) {
+      if (normalizedAiHistory(session).length) {
+        return aiFallbackMessage(text, lang, session, sourceId, {
+          useCurrentIssue: false
+        });
+      }
       return textMessage(copy[lang].issueFirst, issueQuickReply(lang));
     }
     if (isVagueFallbackText(text)) {
@@ -986,7 +984,15 @@ const server = createServer(async (request, response) => {
 
     if (request.method === "GET" && request.url === "/health") {
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ ok: true }));
+      response.end(JSON.stringify({
+        ok: true,
+        env: {
+          lineChannelSecret: Boolean(channelSecret),
+          lineChannelAccessToken: Boolean(channelAccessToken),
+          geminiApiKey: Boolean(geminiApiKey),
+          geminiModel
+        }
+      }));
       return;
     }
 
