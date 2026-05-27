@@ -30,6 +30,7 @@ const copy = {
     sessionExpired: "你已閒置一段時間。為了避免使用到舊選項，請重新選擇問題類型。",
     issueFirst: "請先選擇問題類型，再選擇程序、文件或機構。",
     aiUnavailable: "目前 AI 回覆暫時無法使用。你可以先使用下方選項進行法律程序導航。",
+    aiQuotaExceeded: "目前 AI 使用量已達上限，請稍後再試。你也可以先使用下方選項進行程序導航。",
     vagueInput: "請簡短描述你遇到的狀況，例如薪資、工時、職災、文件或要找哪個機關。我會依照你的描述提供程序導航。",
     stepsTitle: "程序步驟",
     docsTitle: "所需文件",
@@ -59,6 +60,7 @@ const copy = {
     sessionExpired: "You have been idle for a while. To avoid using old options, please choose the issue again.",
     issueFirst: "Please choose an issue first, then choose steps, documents, or agencies.",
     aiUnavailable: "AI replies are temporarily unavailable. You can still use the options below for procedural navigation.",
+    aiQuotaExceeded: "AI usage has reached the current limit. Please try again later, or use the options below for procedural navigation.",
     vagueInput: "Please briefly describe your situation, such as wages, working hours, work injury, documents, or which agency you need. I will provide procedural navigation based on your description.",
     stepsTitle: "Procedure steps",
     docsTitle: "Required documents",
@@ -653,6 +655,34 @@ async function showLoadingAnimation(chatId, loadingSeconds = 20) {
   }
 }
 
+function parseRetryDelayMs(details) {
+  const retryDelay = details
+    ?.find((detail) => detail?.["@type"] === "type.googleapis.com/google.rpc.RetryInfo")
+    ?.retryDelay;
+  const seconds = Number(String(retryDelay || "").replace(/s$/, ""));
+  return Number.isFinite(seconds) ? Math.ceil(seconds * 1000) : null;
+}
+
+function geminiApiError(status, bodyText) {
+  let body = null;
+  try {
+    body = JSON.parse(bodyText);
+  } catch {
+    body = null;
+  }
+
+  const apiError = body?.error || {};
+  const error = new Error(`Gemini API failed: ${status} ${apiError.message || bodyText}`);
+  error.status = status;
+  error.code = apiError.status || null;
+  error.retryAfterMs = parseRetryDelayMs(apiError.details);
+  return error;
+}
+
+function isQuotaError(error) {
+  return error?.status === 429 || error?.code === "RESOURCE_EXHAUSTED";
+}
+
 async function requestGeminiAnswer({ text, lang, route, aiHistory, finalTurn, signal }) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
     method: "POST",
@@ -679,7 +709,7 @@ async function requestGeminiAnswer({ text, lang, route, aiHistory, finalTurn, si
   });
 
   if (!response.ok) {
-    throw new Error(`Gemini API failed: ${response.status} ${await response.text()}`);
+    throw geminiApiError(response.status, await response.text());
   }
 
   const data = await response.json();
@@ -714,7 +744,7 @@ async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
         signal: controller.signal
       });
     } catch (historyError) {
-      if (!aiHistory.length || controller.signal.aborted) throw historyError;
+      if (!aiHistory.length || controller.signal.aborted || isQuotaError(historyError)) throw historyError;
       console.error("Gemini history request failed; retrying with text context.", historyError);
       answer = await requestGeminiAnswer({
         text: `${historyContextText(aiHistory)}\n\nCurrent user message: ${text}`,
@@ -729,6 +759,9 @@ async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
     return textMessage(answer, options.quickReply ?? null);
   } catch (error) {
     console.error("AI fallback failed.", error);
+    if (isQuotaError(error)) {
+      return textMessage(copy[lang].aiQuotaExceeded, fallbackQuickReply(session, lang));
+    }
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
   } finally {
     clearTimeout(timeout);
