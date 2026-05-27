@@ -513,6 +513,19 @@ function appendAiExchange(session, userText, modelText) {
   ].slice(-maxAiHistoryMessages);
 }
 
+function historyContextText(history) {
+  if (!history.length) return "";
+
+  return [
+    "Prior conversation context:",
+    ...history.map((message) => {
+      const speaker = message.role === "model" ? "Assistant" : "User";
+      return `${speaker}: ${message.parts[0].text}`;
+    }),
+    "Use this context only to understand the user's current message."
+  ].join("\n");
+}
+
 function geminiModelPath() {
   return geminiModel.startsWith("models/") ? geminiModel : `models/${geminiModel}`;
 }
@@ -640,6 +653,41 @@ async function showLoadingAnimation(chatId, loadingSeconds = 20) {
   }
 }
 
+async function requestGeminiAnswer({ text, lang, route, aiHistory, finalTurn, signal }) {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
+    method: "POST",
+    signal,
+    headers: {
+      "x-goog-api-key": geminiApiKey,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: aiInstructions(lang, route, { finalTurn }) }]
+      },
+      contents: [
+        ...aiHistory,
+        {
+          role: "user",
+          parts: [{ text }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.3
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini API failed: ${response.status} ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  const answer = formatForLine(cleanAiAnswer(extractGeminiText(data)));
+  if (!answer) throw new Error("Gemini API returned no text");
+  return answer;
+}
+
 async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
   if (!geminiApiKey) {
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
@@ -648,45 +696,37 @@ async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
   await showLoadingAnimation(sourceId);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 9000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
     const route = options.useCurrentIssue === false || !session.issue ? null : routes[session.issue];
     const aiHistory = normalizedAiHistory(session);
     const finalTurn = aiHistory.length >= maxAiHistoryMessages - 2;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "x-goog-api-key": geminiApiKey,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: aiInstructions(lang, route, { finalTurn }) }]
-        },
-        contents: [
-          ...aiHistory,
-          {
-            role: "user",
-            parts: [{ text }]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.3
-        }
-      })
-    });
+    let answer;
 
-    if (!response.ok) {
-      throw new Error(`Gemini API failed: ${response.status} ${await response.text()}`);
+    try {
+      answer = await requestGeminiAnswer({
+        text,
+        lang,
+        route,
+        aiHistory,
+        finalTurn,
+        signal: controller.signal
+      });
+    } catch (historyError) {
+      if (!aiHistory.length || controller.signal.aborted) throw historyError;
+      console.error("Gemini history request failed; retrying with text context.", historyError);
+      answer = await requestGeminiAnswer({
+        text: `${historyContextText(aiHistory)}\n\nCurrent user message: ${text}`,
+        lang,
+        route,
+        aiHistory: [],
+        finalTurn,
+        signal: controller.signal
+      });
     }
-
-    const data = await response.json();
-    const answer = formatForLine(cleanAiAnswer(extractGeminiText(data)));
-    if (!answer) throw new Error("Gemini API returned no text");
     appendAiExchange(session, text, answer);
-    return textMessage(answer, options.quickReply || fallbackQuickReply(session, lang));
+    return textMessage(answer, options.quickReply ?? null);
   } catch (error) {
     console.error("AI fallback failed.", error);
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
@@ -795,8 +835,7 @@ async function buildReply(text, sourceId) {
 
   if (!option) {
     return aiFallbackMessage(text, lang, session, sourceId, {
-      useCurrentIssue: false,
-      quickReply: issueQuickReply(lang)
+      useCurrentIssue: false
     });
   }
 
@@ -806,8 +845,7 @@ async function buildReply(text, sourceId) {
       session.lastOption = null;
       clearAiHistory(session);
       return aiFallbackMessage(text, lang, session, sourceId, {
-        useCurrentIssue: false,
-        quickReply: issueQuickReply(lang)
+        useCurrentIssue: false
       });
     }
     session.lastOption = option;
@@ -820,8 +858,7 @@ async function buildReply(text, sourceId) {
       session.lastOption = null;
       clearAiHistory(session);
       return aiFallbackMessage(text, lang, session, sourceId, {
-        useCurrentIssue: false,
-        quickReply: issueQuickReply(lang)
+        useCurrentIssue: false
       });
     }
     session.lastOption = option;
