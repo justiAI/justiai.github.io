@@ -295,6 +295,10 @@ function inferLanguage(text) {
   return /[\u3400-\u9fff]/.test(text || "") ? "zh" : "en";
 }
 
+function messageLanguage(text) {
+  return languageFromText(text) || inferLanguage(text);
+}
+
 function matchRoute(text) {
   const normalized = (text || "").toLowerCase();
   return Object.entries(routes).find(([, route]) =>
@@ -469,8 +473,10 @@ function aiInstructions(lang, route) {
     "You are JustiAI, a Taiwan-focused procedural legal navigation assistant.",
     routeContext,
     "Use a concise LINE chat style. Keep the answer under 900 characters.",
-    "You may answer general questions, but for legal/labor topics you must only provide procedural information, document preparation, safety reminders, and official-resource direction.",
-    "Do not decide who is right, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
+    "Only provide procedural navigation, document preparation, safety reminders, and official-resource direction.",
+    "Do not provide legal advice, decide who is right or wrong, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
+    "If the user asks for legal judgment, merits analysis, or blame, politely redirect to procedural next steps and official or legal-aid resources.",
+    "If the question is outside procedural navigation, briefly say you can only help with procedural navigation.",
     "If the user seems to need wage, overtime, or work-injury help, tell them they can continue with the buttons below."
   ].join("\n");
 }
@@ -530,7 +536,7 @@ async function buildReply(text, sourceId) {
   const langChoice = languageFromText(text);
   const option = optionFromText(text);
   const routeKey = matchRoute(text);
-  const inferredLang = inferLanguage(text);
+  const currentLang = messageLanguage(text);
 
   if (langChoice) {
     session.lang = langChoice;
@@ -544,7 +550,8 @@ async function buildReply(text, sourceId) {
   if (session.expired) {
     session.expired = false;
     if (session.lang && option !== "language") {
-      return textMessage(expiredIssuePrompt(session.lang), issueQuickReply(session.lang));
+      session.lang = currentLang;
+      return textMessage(expiredIssuePrompt(currentLang), issueQuickReply(currentLang));
     }
     session.lang = null;
     session.issue = null;
@@ -557,24 +564,25 @@ async function buildReply(text, sourceId) {
       return welcomeMessage();
     }
     if (routeKey) {
-      session.lang = inferredLang;
+      session.lang = currentLang;
       session.issue = routeKey;
       session.lastOption = null;
       session.updatedAt = Date.now();
       session.expired = false;
-      return textMessage(actionPrompt(routes[routeKey], session.lang), actionQuickReply(session.lang));
+      return textMessage(actionPrompt(routes[routeKey], currentLang), actionQuickReply(currentLang));
     }
     if (option) {
-      session.lang = inferredLang;
+      session.lang = currentLang;
       session.issue = null;
       session.lastOption = null;
-      return textMessage(copy[session.lang].issueFirst, issueQuickReply(session.lang));
+      return textMessage(copy[currentLang].issueFirst, issueQuickReply(currentLang));
     }
-    session.lang = inferredLang;
-    return aiFallbackMessage(text, session.lang, session);
+    session.lang = currentLang;
+    return aiFallbackMessage(text, currentLang, session);
   }
 
-  const lang = session.lang;
+  const lang = currentLang;
+  session.lang = lang;
 
   if (option === "language") {
     session.lang = null;
@@ -596,7 +604,10 @@ async function buildReply(text, sourceId) {
   }
 
   if (!session.issue) {
-    return textMessage(copy[lang].issueFirst, issueQuickReply(lang));
+    if (option) {
+      return textMessage(copy[lang].issueFirst, issueQuickReply(lang));
+    }
+    return aiFallbackMessage(text, lang, session);
   }
 
   if (option === "agencies") {
