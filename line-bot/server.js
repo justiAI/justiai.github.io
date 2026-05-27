@@ -462,6 +462,26 @@ function extractGeminiText(data) {
     .trim();
 }
 
+function cleanAiAnswer(text) {
+  return (text || "")
+    .split("\n")
+    .filter((line) => {
+      const normalized = line.trim().toLowerCase();
+      if (!normalized) return true;
+      return ![
+        "refining to fit line style",
+        "line style and character limit",
+        "drafting",
+        "thinking",
+        "analysis",
+        "final answer"
+      ].some((phrase) => normalized.includes(phrase));
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function aiInstructions(lang, route) {
   const language = lang === "zh" ? "Traditional Chinese" : "English";
   const routeContext = route
@@ -472,6 +492,7 @@ function aiInstructions(lang, route) {
     `Reply in ${language}.`,
     "You are JustiAI, a Taiwan-focused procedural legal navigation assistant.",
     routeContext,
+    "Return only the final user-facing answer. Do not include drafts, analysis, labels, hidden reasoning, formatting notes, or meta commentary.",
     "Use a concise LINE chat style. Keep the answer under 900 characters.",
     "Only provide procedural navigation, document preparation, safety reminders, and official-resource direction.",
     "Do not provide legal advice, decide who is right or wrong, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
@@ -520,7 +541,7 @@ async function aiFallbackMessage(text, lang, session) {
     }
 
     const data = await response.json();
-    const answer = extractGeminiText(data);
+    const answer = cleanAiAnswer(extractGeminiText(data));
     if (!answer) throw new Error("Gemini API returned no text");
     return textMessage(answer.slice(0, 1800), fallbackQuickReply(session, lang));
   } catch (error) {
