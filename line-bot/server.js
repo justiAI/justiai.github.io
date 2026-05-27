@@ -528,6 +528,46 @@ function cleanAiAnswer(text) {
     .trim();
 }
 
+function formatForLine(text, maxLineLength = 34) {
+  const paragraphs = (text || "")
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  return paragraphs
+    .flatMap((paragraph) => {
+      if (paragraph.length <= maxLineLength) return [paragraph];
+
+      const normalized = paragraph
+        .replace(/([。！？!?])\s*/g, "$1\n")
+        .replace(/([；;])\s*/g, "$1\n")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      return normalized.flatMap((line) => {
+        if (line.length <= maxLineLength) return [line];
+
+        const chunks = [];
+        let remaining = line;
+        while (remaining.length > maxLineLength) {
+          let cutAt = Math.max(
+            remaining.lastIndexOf("，", maxLineLength),
+            remaining.lastIndexOf(",", maxLineLength),
+            remaining.lastIndexOf("、", maxLineLength),
+            remaining.lastIndexOf(" ", maxLineLength)
+          );
+          if (cutAt < Math.floor(maxLineLength * 0.5)) cutAt = maxLineLength;
+          chunks.push(remaining.slice(0, cutAt + 1).trim());
+          remaining = remaining.slice(cutAt + 1).trim();
+        }
+        if (remaining) chunks.push(remaining);
+        return chunks;
+      });
+    })
+    .join("\n");
+}
+
 function aiInstructions(lang, route) {
   const language = lang === "zh" ? "Traditional Chinese" : "English";
   const routeContext = route
@@ -604,7 +644,7 @@ async function aiFallbackMessage(text, lang, session, sourceId) {
     }
 
     const data = await response.json();
-    const answer = cleanAiAnswer(extractGeminiText(data));
+    const answer = formatForLine(cleanAiAnswer(extractGeminiText(data)));
     if (!answer) throw new Error("Gemini API returned no text");
     return textMessage(answer, fallbackQuickReply(session, lang));
   } catch (error) {
