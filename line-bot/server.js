@@ -328,6 +328,27 @@ function optionFromText(text) {
   return null;
 }
 
+function isStandaloneOptionRequest(text, option) {
+  const normalized = (text || "").trim().toLowerCase();
+  const standalone = {
+    steps: [
+      "程序", "步驟", "流程", "下一步", "怎麼做", "怎麼辦", "怎辦", "該怎麼辦",
+      "該怎麼做", "如何做", "如何處理", "申請", "調解",
+      "steps", "procedure", "process", "next step", "what should i do", "what can i do", "how should i handle"
+    ],
+    documents: [
+      "文件", "資料", "證據", "需要準備", "準備什麼", "要帶什麼", "清單",
+      "documents", "document", "docs", "checklist", "evidence", "prepare"
+    ],
+    agencies: [
+      "機構", "機關", "單位", "找誰", "去哪", "哪裡", "網站", "連結", "電話",
+      "agency", "agencies", "1955", "hotline", "website", "link", "where"
+    ]
+  };
+
+  return (standalone[option] || []).includes(normalized);
+}
+
 function isVagueFallbackText(text) {
   const normalized = (text || "").trim().toLowerCase();
   return ["其他", "其它", "other", "others", "else", "something else"].includes(normalized);
@@ -686,11 +707,17 @@ async function buildReply(text, sourceId) {
   }
 
   if (option === "agencies") {
+    if (!isStandaloneOptionRequest(text, option)) {
+      return aiFallbackMessage(text, lang, session, sourceId);
+    }
     session.lastOption = option;
     return textMessage(buildContent(routes[session.issue], option, lang), agencyQuickReply(lang));
   }
 
   if (option === "documents" || option === "steps") {
+    if (!isStandaloneOptionRequest(text, option)) {
+      return aiFallbackMessage(text, lang, session, sourceId);
+    }
     session.lastOption = option;
     return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang, option));
   }
