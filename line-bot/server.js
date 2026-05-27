@@ -11,6 +11,7 @@ const configuredSessionTtlMs = Number(process.env.SESSION_TTL_MS);
 const sessionTtlMs = Number.isFinite(configuredSessionTtlMs) && configuredSessionTtlMs > 0
   ? configuredSessionTtlMs
   : defaultSessionTtlMs;
+const maxAiHistoryMessages = 6;
 
 const copy = {
   zh: {
@@ -244,6 +245,7 @@ function createSession(overrides = {}) {
     lang: null,
     issue: null,
     lastOption: null,
+    aiHistory: [],
     updatedAt: Date.now(),
     expired: false,
     ...overrides
@@ -266,6 +268,7 @@ function getSession(sourceId) {
       lang: existing.lang,
       issue: null,
       lastOption: null,
+      aiHistory: [],
       updatedAt: now,
       expired: true
     });
@@ -294,11 +297,13 @@ function languageFromText(text) {
 }
 
 function inferLanguage(text) {
-  return /[\u3400-\u9fff]/.test(text || "") ? "zh" : "en";
+  if (/[\u3400-\u9fff]/.test(text || "")) return "zh";
+  if (/[a-z]/i.test(text || "")) return "en";
+  return null;
 }
 
-function messageLanguage(text) {
-  return languageFromText(text) || inferLanguage(text);
+function messageLanguage(text, fallback = "en") {
+  return languageFromText(text) || inferLanguage(text) || fallback;
 }
 
 function matchRoute(text) {
@@ -482,6 +487,32 @@ function fallbackQuickReply(session, lang) {
   return actionQuickReply(lang, session.lastOption);
 }
 
+function clearAiHistory(session) {
+  session.aiHistory = [];
+}
+
+function normalizedAiHistory(session) {
+  return Array.isArray(session.aiHistory)
+    ? session.aiHistory
+        .filter((message) => ["user", "model"].includes(message?.role) && message?.parts?.[0]?.text)
+        .slice(-maxAiHistoryMessages)
+    : [];
+}
+
+function appendAiExchange(session, userText, modelText) {
+  session.aiHistory = [
+    ...normalizedAiHistory(session),
+    {
+      role: "user",
+      parts: [{ text: userText }]
+    },
+    {
+      role: "model",
+      parts: [{ text: modelText }]
+    }
+  ].slice(-maxAiHistoryMessages);
+}
+
 function geminiModelPath() {
   return geminiModel.startsWith("models/") ? geminiModel : `models/${geminiModel}`;
 }
@@ -568,11 +599,14 @@ function formatForLine(text, maxLineLength = 34) {
     .join("\n");
 }
 
-function aiInstructions(lang, route) {
+function aiInstructions(lang, route, options = {}) {
   const language = lang === "zh" ? "Traditional Chinese" : "English";
   const routeContext = route
     ? `The user is currently in this route: ${localize(route.label, lang)}.`
     : "The user has not selected a route yet.";
+  const finalTurnInstruction = options.finalTurn
+    ? "This is the final allowed AI follow-up turn for this issue. Do not ask another clarifying question. Give the best procedural result from the known facts, state any important assumptions briefly, and close with official-resource direction."
+    : "If the user's message is too vague, ask one short clarifying question instead of inventing categories or a menu.";
 
   return [
     `Reply in ${language}.`,
@@ -582,12 +616,14 @@ function aiInstructions(lang, route) {
     "Start directly with the useful answer. Do not greet the user and do not introduce yourself.",
     "Use a clear LINE chat style and answer in complete sentences.",
     "Do not use Markdown, emoji, bold text, or internal headings.",
-    "If the user's message is too vague, ask one short clarifying question instead of inventing categories or a menu.",
+    "Use the prior conversation messages to understand short follow-up answers to your clarifying questions.",
+    finalTurnInstruction,
     "Only provide procedural navigation, document preparation, safety reminders, and official-resource direction.",
     "Do not provide legal advice, decide who is right or wrong, label conduct as legal or illegal, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
     "If the user asks for legal judgment, merits analysis, or blame, politely redirect to procedural next steps and official or legal-aid resources.",
     "If the question is outside procedural navigation, briefly say you can only help with procedural navigation.",
-    "If the user seems to need wage, overtime, or work-injury help, tell them they can continue with the buttons below."
+    "Do not invite the user to continue with an unrelated previous issue.",
+    "Do not mention buttons, quick replies, or previous issue categories unless the user explicitly asks about them."
   ].join("\n");
 }
 
@@ -604,7 +640,7 @@ async function showLoadingAnimation(chatId, loadingSeconds = 20) {
   }
 }
 
-async function aiFallbackMessage(text, lang, session, sourceId) {
+async function aiFallbackMessage(text, lang, session, sourceId, options = {}) {
   if (!geminiApiKey) {
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
   }
@@ -615,7 +651,9 @@ async function aiFallbackMessage(text, lang, session, sourceId) {
   const timeout = setTimeout(() => controller.abort(), 9000);
 
   try {
-    const route = session.issue ? routes[session.issue] : null;
+    const route = options.useCurrentIssue === false || !session.issue ? null : routes[session.issue];
+    const aiHistory = normalizedAiHistory(session);
+    const finalTurn = aiHistory.length >= maxAiHistoryMessages - 2;
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
       method: "POST",
       signal: controller.signal,
@@ -625,9 +663,10 @@ async function aiFallbackMessage(text, lang, session, sourceId) {
       },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: aiInstructions(lang, route) }]
+          parts: [{ text: aiInstructions(lang, route, { finalTurn }) }]
         },
         contents: [
+          ...aiHistory,
           {
             role: "user",
             parts: [{ text }]
@@ -646,7 +685,8 @@ async function aiFallbackMessage(text, lang, session, sourceId) {
     const data = await response.json();
     const answer = formatForLine(cleanAiAnswer(extractGeminiText(data)));
     if (!answer) throw new Error("Gemini API returned no text");
-    return textMessage(answer, fallbackQuickReply(session, lang));
+    appendAiExchange(session, text, answer);
+    return textMessage(answer, options.quickReply || fallbackQuickReply(session, lang));
   } catch (error) {
     console.error("AI fallback failed.", error);
     return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
@@ -660,12 +700,13 @@ async function buildReply(text, sourceId) {
   const langChoice = languageFromText(text);
   const option = optionFromText(text);
   const routeKey = matchRoute(text);
-  const currentLang = messageLanguage(text);
+  const currentLang = messageLanguage(text, session.lang || "en");
 
   if (langChoice) {
     session.lang = langChoice;
     session.issue = null;
     session.lastOption = null;
+    clearAiHistory(session);
     session.updatedAt = Date.now();
     session.expired = false;
     return textMessage(issuePrompt(session.lang), issueQuickReply(session.lang));
@@ -680,6 +721,7 @@ async function buildReply(text, sourceId) {
     session.lang = null;
     session.issue = null;
     session.lastOption = null;
+    clearAiHistory(session);
     return expiredWelcomeMessage();
   }
 
@@ -691,6 +733,7 @@ async function buildReply(text, sourceId) {
       session.lang = currentLang;
       session.issue = routeKey;
       session.lastOption = option === "steps" ? "steps" : null;
+      clearAiHistory(session);
       session.updatedAt = Date.now();
       session.expired = false;
       if (option === "steps") {
@@ -702,6 +745,7 @@ async function buildReply(text, sourceId) {
       session.lang = currentLang;
       session.issue = null;
       session.lastOption = null;
+      clearAiHistory(session);
       return textMessage(copy[currentLang].issueFirst, issueQuickReply(currentLang));
     }
     session.lang = currentLang;
@@ -718,18 +762,21 @@ async function buildReply(text, sourceId) {
     session.lang = null;
     session.issue = null;
     session.lastOption = null;
+    clearAiHistory(session);
     return languagePromptMessage();
   }
 
   if (option === "restart") {
     session.issue = null;
     session.lastOption = null;
+    clearAiHistory(session);
     return textMessage(issuePrompt(lang), issueQuickReply(lang));
   }
 
   if (routeKey) {
     session.issue = routeKey;
     session.lastOption = option === "steps" ? "steps" : null;
+    clearAiHistory(session);
     if (option === "steps") {
       return textMessage(buildContent(routes[routeKey], "steps", lang), actionQuickReply(lang, "steps"));
     }
@@ -746,9 +793,22 @@ async function buildReply(text, sourceId) {
     return aiFallbackMessage(text, lang, session, sourceId);
   }
 
+  if (!option) {
+    return aiFallbackMessage(text, lang, session, sourceId, {
+      useCurrentIssue: false,
+      quickReply: issueQuickReply(lang)
+    });
+  }
+
   if (option === "agencies") {
     if (!isStandaloneOptionRequest(text, option)) {
-      return aiFallbackMessage(text, lang, session, sourceId);
+      session.issue = null;
+      session.lastOption = null;
+      clearAiHistory(session);
+      return aiFallbackMessage(text, lang, session, sourceId, {
+        useCurrentIssue: false,
+        quickReply: issueQuickReply(lang)
+      });
     }
     session.lastOption = option;
     return textMessage(buildContent(routes[session.issue], option, lang), agencyQuickReply(lang));
@@ -756,7 +816,13 @@ async function buildReply(text, sourceId) {
 
   if (option === "documents" || option === "steps") {
     if (!isStandaloneOptionRequest(text, option)) {
-      return aiFallbackMessage(text, lang, session, sourceId);
+      session.issue = null;
+      session.lastOption = null;
+      clearAiHistory(session);
+      return aiFallbackMessage(text, lang, session, sourceId, {
+        useCurrentIssue: false,
+        quickReply: issueQuickReply(lang)
+      });
     }
     session.lastOption = option;
     return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang, option));
