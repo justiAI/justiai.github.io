@@ -3,6 +3,8 @@ import { createServer } from "node:http";
 
 const channelSecret = process.env.LINE_CHANNEL_SECRET;
 const channelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const geminiModel = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 const port = Number(process.env.PORT || 3000);
 const defaultSessionTtlMs = 30 * 60 * 1000;
 const configuredSessionTtlMs = Number(process.env.SESSION_TTL_MS);
@@ -26,6 +28,7 @@ const copy = {
     selected: "已選擇",
     sessionExpired: "你已閒置一段時間。為了避免使用到舊選項，請重新選擇問題類型。",
     issueFirst: "請先選擇問題類型，再選擇程序、文件或機構。",
+    aiUnavailable: "目前 AI 回覆暫時無法使用。你可以先使用下方選項進行法律程序導航。",
     stepsTitle: "程序步驟",
     docsTitle: "所需文件",
     agenciesTitle: "相關機構與網站",
@@ -53,6 +56,7 @@ const copy = {
     selected: "Selected",
     sessionExpired: "You have been idle for a while. To avoid using old options, please choose the issue again.",
     issueFirst: "Please choose an issue first, then choose steps, documents, or agencies.",
+    aiUnavailable: "AI replies are temporarily unavailable. You can still use the options below for procedural navigation.",
     stepsTitle: "Procedure steps",
     docsTitle: "Required documents",
     agenciesTitle: "Related agencies and websites",
@@ -69,7 +73,10 @@ const copy = {
 
 const routes = {
   wage: {
-    keywords: ["wage", "salary", "pay", "薪資", "工資", "未付"],
+    keywords: [
+      "wage", "salary", "pay", "unpaid", "deduction", "薪資", "薪水", "工資",
+      "工錢", "未付", "欠薪", "扣薪", "沒給錢", "沒有給錢", "不給錢", "沒拿到錢"
+    ],
     label: { zh: "薪資未付", en: "Unpaid wages" },
     buttonLabel: { zh: "薪資未付", en: "Wages" },
     steps: {
@@ -108,7 +115,10 @@ const routes = {
     }
   },
   overtime: {
-    keywords: ["overtime", "hours", "shift", "加班", "工時", "班表"],
+    keywords: [
+      "overtime", "hours", "shift", "working time", "rest day", "加班", "加班費",
+      "工時", "超時", "班表", "排班", "休息日", "沒有休息"
+    ],
     label: { zh: "加班或工時問題", en: "Overtime or working hours" },
     buttonLabel: { zh: "加班工時", en: "Overtime" },
     steps: {
@@ -145,7 +155,10 @@ const routes = {
     }
   },
   injury: {
-    keywords: ["injury", "accident", "medical", "職災", "受傷", "事故"],
+    keywords: [
+      "injury", "accident", "medical", "work injury", "職災", "職業災害",
+      "職業傷害", "工傷", "受傷", "工作受傷", "事故", "醫療", "診斷證明"
+    ],
     label: { zh: "職業災害", en: "Work injury" },
     buttonLabel: { zh: "職業災害", en: "Work injury" },
     steps: {
@@ -278,6 +291,10 @@ function languageFromText(text) {
   return null;
 }
 
+function inferLanguage(text) {
+  return /[\u3400-\u9fff]/.test(text || "") ? "zh" : "en";
+}
+
 function matchRoute(text) {
   const normalized = (text || "").toLowerCase();
   return Object.entries(routes).find(([, route]) =>
@@ -287,9 +304,18 @@ function matchRoute(text) {
 
 function optionFromText(text) {
   const normalized = (text || "").toLowerCase();
-  if (["程序", "步驟", "steps", "procedure"].some((keyword) => normalized.includes(keyword))) return "steps";
-  if (["文件", "documents", "document", "docs", "checklist"].some((keyword) => normalized.includes(keyword))) return "documents";
-  if (["機構", "agency", "agencies", "1955", "hotline", "website", "網站"].some((keyword) => normalized.includes(keyword))) return "agencies";
+  if ([
+    "程序", "步驟", "流程", "下一步", "怎麼做", "如何做", "申請", "調解",
+    "steps", "procedure", "process", "next step", "what should i do"
+  ].some((keyword) => normalized.includes(keyword))) return "steps";
+  if ([
+    "文件", "資料", "證據", "需要準備", "準備什麼", "要帶什麼", "清單",
+    "documents", "document", "docs", "checklist", "evidence", "prepare"
+  ].some((keyword) => normalized.includes(keyword))) return "documents";
+  if ([
+    "機構", "機關", "單位", "找誰", "去哪", "哪裡", "網站", "連結", "電話",
+    "agency", "agencies", "1955", "hotline", "website", "link", "where"
+  ].some((keyword) => normalized.includes(keyword))) return "agencies";
   if (["重選", "重新", "change", "restart"].some((keyword) => normalized.includes(keyword))) return "restart";
   if (["語言", "language"].some((keyword) => normalized.includes(keyword))) return "language";
   return null;
@@ -414,11 +440,97 @@ function buildContent(route, option, lang) {
   ].join("\n");
 }
 
-function buildReply(text, sourceId) {
+function fallbackQuickReply(session, lang) {
+  if (!session.issue) return issueQuickReply(lang);
+  return actionQuickReply(lang, session.lastOption);
+}
+
+function geminiModelPath() {
+  return geminiModel.startsWith("models/") ? geminiModel : `models/${geminiModel}`;
+}
+
+function extractGeminiText(data) {
+  return (data?.candidates || [])
+    .flatMap((candidate) => candidate.content?.parts || [])
+    .map((part) => part.text || "")
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+}
+
+function aiInstructions(lang, route) {
+  const language = lang === "zh" ? "Traditional Chinese" : "English";
+  const routeContext = route
+    ? `The user is currently in this route: ${localize(route.label, lang)}.`
+    : "The user has not selected a route yet.";
+
+  return [
+    `Reply in ${language}.`,
+    "You are JustiAI, a Taiwan-focused procedural legal navigation assistant.",
+    routeContext,
+    "Use a concise LINE chat style. Keep the answer under 900 characters.",
+    "You may answer general questions, but for legal/labor topics you must only provide procedural information, document preparation, safety reminders, and official-resource direction.",
+    "Do not decide who is right, predict compensation or court outcomes, write legal arguments, or replace a lawyer.",
+    "If the user seems to need wage, overtime, or work-injury help, tell them they can continue with the buttons below."
+  ].join("\n");
+}
+
+async function aiFallbackMessage(text, lang, session) {
+  if (!geminiApiKey) {
+    return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
+
+  try {
+    const route = session.issue ? routes[session.issue] : null;
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "x-goog-api-key": geminiApiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: aiInstructions(lang, route) }]
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text }]
+          }
+        ],
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0.3
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API failed: ${response.status} ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const answer = extractGeminiText(data);
+    if (!answer) throw new Error("Gemini API returned no text");
+    return textMessage(answer.slice(0, 1800), fallbackQuickReply(session, lang));
+  } catch (error) {
+    console.error("AI fallback failed.", error);
+    return textMessage(copy[lang].aiUnavailable, fallbackQuickReply(session, lang));
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function buildReply(text, sourceId) {
   const session = getSession(sourceId);
   const langChoice = languageFromText(text);
   const option = optionFromText(text);
   const routeKey = matchRoute(text);
+  const inferredLang = inferLanguage(text);
 
   if (langChoice) {
     session.lang = langChoice;
@@ -444,10 +556,22 @@ function buildReply(text, sourceId) {
     if (option === "language") {
       return welcomeMessage();
     }
-    if (option || routeKey) {
-      return expiredWelcomeMessage();
+    if (routeKey) {
+      session.lang = inferredLang;
+      session.issue = routeKey;
+      session.lastOption = null;
+      session.updatedAt = Date.now();
+      session.expired = false;
+      return textMessage(actionPrompt(routes[routeKey], session.lang), actionQuickReply(session.lang));
     }
-    return welcomeMessage();
+    if (option) {
+      session.lang = inferredLang;
+      session.issue = null;
+      session.lastOption = null;
+      return textMessage(copy[session.lang].issueFirst, issueQuickReply(session.lang));
+    }
+    session.lang = inferredLang;
+    return aiFallbackMessage(text, session.lang, session);
   }
 
   const lang = session.lang;
@@ -485,7 +609,7 @@ function buildReply(text, sourceId) {
     return textMessage(buildContent(routes[session.issue], option, lang), actionQuickReply(lang, option));
   }
 
-  return textMessage(actionPrompt(routes[session.issue], lang), actionQuickReply(lang, session.lastOption));
+  return aiFallbackMessage(text, lang, session);
 }
 
 async function sendLineApi(path, body) {
@@ -542,7 +666,7 @@ async function handleLineEvent(event) {
   if (event.type !== "message" || event.message?.type !== "text") return;
 
   const sourceId = getSourceId(event);
-  await deliverMessages(event, [buildReply(event.message.text, sourceId)]);
+  await deliverMessages(event, [await buildReply(event.message.text, sourceId)]);
 }
 
 function readBody(request) {
