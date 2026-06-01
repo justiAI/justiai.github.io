@@ -1373,28 +1373,37 @@ select:focus-visible,
 
 .video-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   margin-top: 28px;
   align-items: stretch;
 }
 
-.video-frame,
-.video-note {
+.video-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #fff;
   box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 
 .video-frame {
-  min-height: 360px;
+  position: relative;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
   display: grid;
   place-items: center;
-  padding: 18px;
-  background:
-    linear-gradient(135deg, rgba(19, 77, 158, 0.1), rgba(29, 158, 117, 0.1)),
-    #ffffff;
+  background: #071325;
+  overflow: hidden;
+}
+
+.video-frame video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .video-placeholder {
@@ -1422,7 +1431,8 @@ select:focus-visible,
   display: grid;
   align-content: center;
   gap: 10px;
-  padding: 20px;
+  min-height: 128px;
+  padding: 18px;
 }
 
 .video-note strong {
@@ -2093,15 +2103,30 @@ footer strong {
 
   <section class="band alt" id="demo">
     <div class="section-inner">
-      <h2 class="section-heading" data-i18n="demoTitle">Demo video</h2>
+      <h2 class="section-heading" data-i18n="demoTitle">Demo videos</h2>
       <div class="video-panel">
-        <div class="video-frame" aria-label="Demo video placeholder">
-          <div class="video-placeholder" aria-hidden="true"></div>
-        </div>
-        <div class="video-note">
-          <strong data-i18n="demoVideoTitle">Walkthrough video placeholder</strong>
-          <span data-i18n="demoVideoText">The final recording can be embedded here after the LINE bot demo is captured.</span>
-        </div>
+        <article class="video-card">
+          <div class="video-frame" aria-label="Default response demo video">
+            <video controls preload="metadata" playsinline aria-label="Default response demo video">
+              <source src="defaultDemo.mov">
+              Your browser does not support embedded video.
+            </video>
+          </div>
+          <div class="video-note">
+            <strong data-i18n="demoDefaultTitle">Default response demo</strong>
+          </div>
+        </article>
+        <article class="video-card">
+          <div class="video-frame" aria-label="Gemini response demo video">
+            <video controls preload="metadata" playsinline aria-label="Gemini response demo video">
+              <source src="geminiDemo.mov">
+              Your browser does not support embedded video.
+            </video>
+          </div>
+          <div class="video-note">
+            <strong data-i18n="demoGeminiTitle">Gemini response demo</strong>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -2404,9 +2429,9 @@ const copy = {
     reportTwoTitle: "System architecture",
     reportTwoText: "The prototype uses structured procedural data, bilingual UI text, and rule-based navigation logic.",
     reportTwoAction: "View knowledge base",
-    demoTitle: "Demo video",
-    demoVideoTitle: "Walkthrough video placeholder",
-    demoVideoText: "The final recording can be embedded here after the LINE bot demo is captured.",
+    demoTitle: "Demo videos",
+    demoDefaultTitle: "Default response demo",
+    demoGeminiTitle: "Gemini response demo",
     qrAlt: "JustiAI LINE QR code",
     lineIdLabel: "Manual LINE ID",
     lineIdCopy: "Click to copy",
@@ -2603,8 +2628,8 @@ const copy = {
     reportTwoText: "原型使用結構化程序資料、雙語介面文字與規則式導航邏輯。",
     reportTwoAction: "查看知識庫",
     demoTitle: "示範影片",
-    demoVideoTitle: "操作示範影片預留區",
-    demoVideoText: "完成 LINE bot 操作錄影後，可以把影片嵌入這個位置。",
+    demoDefaultTitle: "預設回答示範",
+    demoGeminiTitle: "Gemini 回答示範",
     qrAlt: "JustiAI LINE QR code",
     lineIdLabel: "可手動輸入",
     lineIdCopy: "點擊複製 LINE ID",
