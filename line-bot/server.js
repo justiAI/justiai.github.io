@@ -224,6 +224,111 @@ const agencies = [
   }
 ];
 
+// ── RAG: Knowledge Base & Embedding ──────────────────────────────────────────
+
+function buildKnowledgeChunks() {
+  const chunks = [];
+  for (const [issueKey, route] of Object.entries(routes)) {
+    for (const lang of ["en", "zh"]) {
+      const label = route.label[lang];
+      route.steps[lang].forEach((step, i) => {
+        chunks.push({
+          id: `${issueKey}_step_${lang}_${i}`,
+          issue: issueKey,
+          lang,
+          type: "step",
+          text: `[${label}] Step ${i + 1}: ${step}`
+        });
+      });
+      route.documents[lang].forEach((doc, i) => {
+        chunks.push({
+          id: `${issueKey}_doc_${lang}_${i}`,
+          issue: issueKey,
+          lang,
+          type: "document",
+          text: `[${label}] Required document: ${doc}`
+        });
+      });
+    }
+  }
+  for (const lang of ["en", "zh"]) {
+    agencies.forEach((agency) => {
+      chunks.push({
+        id: `agency_${lang}_${agency.buttonLabel.en}`,
+        issue: null,
+        lang,
+        type: "agency",
+        text: `Official agency: ${agency.label[lang]} — ${agency.url}`
+      });
+    });
+  }
+  return chunks;
+}
+
+async function fetchEmbedding(text) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${geminiApiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: { parts: [{ text }] } })
+    }
+  );
+  if (!response.ok) throw new Error(`Embedding API error: ${response.status}`);
+  const data = await response.json();
+  return data.embedding.values;
+}
+
+function cosineSimilarity(a, b) {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+const ragIndex = { chunks: [], embeddings: [], ready: false };
+
+async function initRagIndex() {
+  if (!geminiApiKey) return;
+  const chunks = buildKnowledgeChunks();
+  console.log(`RAG: embedding ${chunks.length} knowledge chunks…`);
+  const embeddings = await Promise.all(chunks.map((c) => fetchEmbedding(c.text)));
+  ragIndex.chunks = chunks;
+  ragIndex.embeddings = embeddings;
+  ragIndex.ready = true;
+  console.log("RAG: index ready.");
+}
+
+async function retrieveContext(queryText, { lang = "en", issue = null, topK = 4 } = {}) {
+  if (!ragIndex.ready) return "";
+  let queryEmbedding;
+  try {
+    queryEmbedding = await fetchEmbedding(queryText);
+  } catch (err) {
+    console.error("RAG: query embedding failed.", err);
+    return "";
+  }
+  const scored = ragIndex.chunks
+    .filter((c) => c.lang === lang)
+    .map((c, i) => ({
+      chunk: c,
+      score: cosineSimilarity(queryEmbedding, ragIndex.embeddings[ragIndex.chunks.indexOf(c)])
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK);
+
+  if (!scored.length) return "";
+  return "Relevant knowledge retrieved:\n" + scored.map((s) => `- ${s.chunk.text}`).join("\n");
+}
+
+// Initialize RAG index in background (non-blocking)
+initRagIndex().catch((err) => console.error("RAG init failed.", err));
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const userSessions = new Map();
 
 function verifySignature(body, signature) {
@@ -611,11 +716,15 @@ function formatForLine(text, maxLineLength = 34) {
     .join("\n");
 }
 
-function aiInstructions(lang, route) {
+function aiInstructions(lang, route, retrievedContext = "") {
   const language = lang === "zh" ? "Traditional Chinese" : "English";
   const routeContext = route
     ? `The user is currently in this route: ${localize(route.label, lang)}.`
     : "The user has not selected a route yet.";
+
+  const ragSection = retrievedContext
+    ? `\n\n${retrievedContext}\n\nUse the retrieved knowledge above to ground your answer in verified procedures.`
+    : "";
 
   return [
     `Reply in ${language}.`,
@@ -633,7 +742,7 @@ function aiInstructions(lang, route) {
     "If the question is outside procedural navigation, briefly say you can only help with procedural navigation.",
     "Do not invite the user to continue with an unrelated previous issue.",
     "Do not mention buttons, quick replies, or previous issue categories unless the user explicitly asks about them."
-  ].join("\n");
+  ].join("\n") + ragSection;
 }
 
 async function showLoadingAnimation(chatId, loadingSeconds = 20) {
@@ -678,6 +787,9 @@ function isQuotaError(error) {
 }
 
 async function requestGeminiAnswer({ text, lang, route, aiHistory, signal }) {
+  const issueKey = route ? Object.keys(routes).find((k) => routes[k] === route) : null;
+  const retrievedContext = await retrieveContext(text, { lang, issue: issueKey }).catch(() => "");
+
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${geminiModelPath()}:generateContent`, {
     method: "POST",
     signal,
@@ -687,7 +799,7 @@ async function requestGeminiAnswer({ text, lang, route, aiHistory, signal }) {
     },
     body: JSON.stringify({
       systemInstruction: {
-        parts: [{ text: aiInstructions(lang, route) }]
+        parts: [{ text: aiInstructions(lang, route, retrievedContext) }]
       },
       contents: [
         ...aiHistory,
