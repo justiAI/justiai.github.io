@@ -466,6 +466,17 @@ function isVagueFallbackText(text) {
   return ["其他", "其它", "other", "others", "else", "something else"].includes(normalized);
 }
 
+function isGreetingText(text) {
+  const normalized = (text || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[!！?？。.,，、~～\s]+$/g, "");
+
+  const token = "(hi|hello|hey|嗨|哈囉|哈啰|你好|您好)";
+  const greetingPattern = new RegExp(`^${token}([\\s,，.!！?？。、~～]+${token})*$`, "i");
+  return greetingPattern.test(normalized);
+}
+
 function messageAction(label, text) {
   return { type: "action", action: { type: "message", label, text } };
 }
@@ -880,6 +891,16 @@ async function buildReply(text, sourceId) {
   const routeKey = matchRoute(text);
   const currentLang = messageLanguage(text, session.lang || "en");
 
+  if (isGreetingText(text)) {
+    session.lang = null;
+    session.issue = null;
+    session.lastOption = null;
+    clearAiHistory(session);
+    session.updatedAt = Date.now();
+    session.expired = false;
+    return welcomeMessage();
+  }
+
   if (langChoice) {
     session.lang = langChoice;
     session.issue = null;
@@ -930,7 +951,8 @@ async function buildReply(text, sourceId) {
     if (isVagueFallbackText(text)) {
       return textMessage(copy[currentLang].vagueInput, issueQuickReply(currentLang));
     }
-    return aiFallbackMessage(text, currentLang, session, sourceId);
+    clearAiHistory(session);
+    return languagePromptMessage();
   }
 
   const lang = currentLang;
