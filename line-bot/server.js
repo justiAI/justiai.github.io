@@ -472,7 +472,7 @@ function isGreetingText(text) {
     .toLowerCase()
     .replace(/[!！?？。.,，、~～\s]+$/g, "");
 
-  const token = "(hi|hello|hey|嗨|哈囉|哈啰|你好|您好)";
+  const token = "(hi|hello|hey|Hi|Hello|Hey|嗨|哈囉|哈啰|你好|您好)";
   const greetingPattern = new RegExp(`^${token}([\\s,，.!！?？。、~～]+${token})*$`, "i");
   return greetingPattern.test(normalized);
 }
